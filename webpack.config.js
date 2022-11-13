@@ -9,15 +9,6 @@ module.exports = {
   },
   module: {
     rules: [
-      // {
-      //   test: [/\.scss$/i],
-      //   use: [
-      //     MiniCssExtractPlugin.loader,
-      //     "css-loader",
-      //     "postcss-loader",
-      //     "sass-loader",
-      //   ],
-      // },
       {
         test: /\.(ts|tsx)$/i,
         loader: "ts-loader",
