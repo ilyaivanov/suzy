@@ -1,12 +1,13 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-module.exports = {
+module.exports = (env, argv) => ({
   entry: "./src/index.ts",
   output: {
     filename: `app.js`,
     path: path.resolve(__dirname, "build"),
   },
+  devtool: argv.mode === "development" ? "inline-source-map" : undefined,
   module: {
     rules: [
       {
@@ -26,4 +27,4 @@ module.exports = {
     }),
   ],
   resolve: { extensions: [".ts", ".tsx", ".js", ".json"] },
-};
+});

@@ -10,7 +10,6 @@ const tree = createTree(
     item("Bar"),
   ])
 );
-
 const canvas = createCanvas();
 
 const sidepanel = createSidepanel({ onChange: () => drawCanvas(canvas, tree) });
