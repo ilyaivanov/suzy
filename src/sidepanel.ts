@@ -5,7 +5,7 @@ type Props = {
   onChange: () => void;
 };
 
-let isVisible = true;
+let isVisible = false;
 export const createSidepanel = ({ onChange }: Props) => {
   const res = div("sidepanel");
 
@@ -42,7 +42,7 @@ export const createSidepanel = ({ onChange }: Props) => {
       res.classList.toggle("hidden", !isVisible);
     }
   });
-
+  res.classList.toggle("hidden", !isVisible);
   return res;
 };
 
