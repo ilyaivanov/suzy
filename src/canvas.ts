@@ -54,8 +54,7 @@ export const drawCanvas = ({ ctx }: MyCanvas, tree: Tree) => {
 
     y += constants.yStep;
 
-    if (item.children.length > 0)
-      item.children.forEach((sub) => onItem(sub, level + 1));
+    if (item.isOpen) item.children.forEach((sub) => onItem(sub, level + 1));
   };
 
   tree.root.children.forEach((child) => onItem(child, 0));

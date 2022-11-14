@@ -35,15 +35,13 @@ export const createSidepanel = ({ onChange }: Props) => {
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.code == "KeyL" && e.ctrlKey) {
-      e.preventDefault();
-      isVisible = !isVisible;
-      res.classList.toggle("hidden", !isVisible);
-    }
-  });
   res.classList.toggle("hidden", !isVisible);
   return res;
+};
+
+export const toggleSidebarVisibility = (el: HTMLElement) => {
+  isVisible = !isVisible;
+  el.classList.toggle("hidden", !isVisible);
 };
 
 const camelCaseToTitleCase = (text: string) => {
