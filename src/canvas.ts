@@ -66,13 +66,16 @@ export const drawCanvas = ({ ctx, focusedItem }: MyCanvas, tree: Tree) => {
     if (item.isOpen) item.children.forEach((sub) => onItem(sub, level + 1));
   };
 
+  //Focused title
   if (!isRoot(focusedItem)) {
     ctx.fillStyle = "white";
     ctx.textBaseline = "middle";
     ctx.font = `${constants.focusedFontSize}px ${constants.font}`;
     ctx.fillText(
       focusedItem.title,
-      constants.leftRightCanvasPadding,
+      constants.leftRightCanvasPadding +
+        constants.squareSize +
+        constants.textLeftMargin,
       constants.focusedRowHeight / 2 + 2 //moving downt by eye for two pixels
     );
 
