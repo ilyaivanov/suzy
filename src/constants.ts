@@ -1,12 +1,20 @@
 export default {
-  xStart: 20,
-  yStart: 20,
+  rowHeight: 28,
+  fontSize: 16,
+
+  focusedRowHeight: 45,
+  focusedFontSize: 32,
+
+  leftRightCanvasPadding: 20,
 
   xStep: 20,
-  yStep: 30,
 
   squareSize: 7,
-  fontSize: 16,
+
   font: "Segoe UI",
+  showBorder: false,
+  showSidebarInitially: false,
   textLeftMargin: 7,
+
+  selectedBarAlpha: 0.12,
 };

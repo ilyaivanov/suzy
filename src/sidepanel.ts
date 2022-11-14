@@ -1,17 +1,17 @@
-import { div, inputRange } from "./html";
+import { div, inputCheckbox, inputColor, inputRange } from "./html";
 import constants from "./constants";
 
 type Props = {
   onChange: () => void;
 };
 
-let isVisible = false;
+let isVisible = constants.showSidebarInitially;
 export const createSidepanel = ({ onChange }: Props) => {
   const res = div("sidepanel");
 
   Object.keys(constants).forEach((key) => {
     const getValue = (): number | unknown => (constants as any)[key];
-    const setValue = (key: string, v: number) => ((constants as any)[key] = v);
+    const setValue = (key: string, v: unknown) => ((constants as any)[key] = v);
 
     const value = getValue();
     if (typeof value === "number") {
@@ -30,6 +30,37 @@ export const createSidepanel = ({ onChange }: Props) => {
             },
           }),
           cell
+        )
+      );
+    } else if (typeof value === "boolean") {
+      res.appendChild(
+        div(
+          "row",
+          div("row-text", camelCaseToTitleCase(key)),
+          inputCheckbox({
+            value: value,
+            onChange: (val) => {
+              setValue(key, val);
+              onChange();
+            },
+          })
+        )
+      );
+    } else if (
+      key.toLocaleLowerCase().endsWith("color") &&
+      typeof value === "string"
+    ) {
+      res.appendChild(
+        div(
+          "row",
+          div("row-text", camelCaseToTitleCase(key)),
+          inputColor({
+            value: value,
+            onChange: (val) => {
+              setValue(key, val);
+              onChange();
+            },
+          })
         )
       );
     }

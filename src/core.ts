@@ -68,14 +68,14 @@ export const isRoot = (item: Item) => !item.parent;
 //   traverse(item.children);
 // };
 
-// export const isOneOfTheParents = (item: Item, parent: Item) => {
-//   let current: Item | undefined = item;
-//   while (current) {
-//     if (current === parent) return true;
-//     current = current.parent;
-//   }
-//   return false;
-// };
+export const isOneOfTheParents = (item: Item, parent: Item) => {
+  let current: Item | undefined = item;
+  while (current) {
+    if (current === parent) return true;
+    current = current.parent;
+  }
+  return false;
+};
 
 export const getItemBelow = (focusedItem: Item, item: Item): Item | undefined =>
   (item.isOpen && item.children.length > 0) || focusedItem == item
