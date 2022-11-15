@@ -12,7 +12,10 @@ type MyCanvas = {
   focusedItem: Item | undefined;
 };
 
-export const drawCanvas = ({ ctx, focusedItem }: MyCanvas, tree: Tree) => {
+export const drawCanvas = (
+  { ctx, canvasEl, focusedItem }: MyCanvas,
+  tree: Tree
+) => {
   if (!focusedItem) return;
 
   ctx.fillStyle = "#1E2021";
@@ -20,9 +23,10 @@ export const drawCanvas = ({ ctx, focusedItem }: MyCanvas, tree: Tree) => {
 
   let rowTop = isRoot(focusedItem) ? 0 : constants.focusedRowHeight;
 
+  const leftMargin = Math.max((canvasEl.width - constants.maxWidth) / 2, 0);
   const onItem = (item: Item, level: number) => {
     const squareLeft =
-      constants.leftRightCanvasPadding + level * constants.xStep;
+      leftMargin + constants.leftRightCanvasPadding + level * constants.xStep;
 
     drawRectAtCenter(
       ctx,

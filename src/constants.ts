@@ -7,7 +7,8 @@ export default {
 
   leftRightCanvasPadding: 20,
 
-  xStep: 20,
+  maxWidth: 800,
+  xStep: 25,
 
   squareSize: 7,
 
