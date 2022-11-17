@@ -4,7 +4,6 @@ import {
   getItemAbove,
   getItemBelow,
   isOneOfTheParents,
-  isRoot,
   Item,
   item,
   root,
@@ -14,17 +13,101 @@ import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 const tree = createTree(
   root([
-    item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-    item("Fooo", [
-      item("Music", [
-        item("Ambient"),
-        item("Electro"),
-        item("Metal", [
-          item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+    item("First", [
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro", [item("Electro 1")]),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
         ]),
       ]),
     ]),
-    item("Bar"),
+
+    item("Second", [
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+      item("Fooo", [
+        item("Music", [
+          item("Ambient"),
+          item("Electro"),
+          item("Metal", [
+            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
+          ]),
+        ]),
+      ]),
+    ]),
   ])
 );
 const canvas = createCanvas();
@@ -55,6 +138,7 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "KeyL" && e.ctrlKey) {
     toggleSidebarVisibility(sidepanel);
     e.preventDefault();
+  } else if (e.code === "ArrowDown" && e.ctrlKey) {
   } else if (e.code === "ArrowRight" && tree.selectedItem && e.altKey) {
     if (canvas.focusedItem != tree.selectedItem) {
       tryChangeFocus(tree.selectedItem);
@@ -87,6 +171,15 @@ document.addEventListener("keydown", (e) => {
   redrawCanvas();
 });
 
+document.addEventListener("wheel", (e) => {
+  canvas.pageOffset = clamp(
+    canvas.pageOffset + e.deltaY,
+    0,
+    canvas.pageHeight - canvas.canvasEl.height
+  );
+  redrawCanvas();
+});
+
 const tryChangeSelection = (newItemToSelect: Item) => {
   if (
     canvas.focusedItem &&
@@ -97,4 +190,10 @@ const tryChangeSelection = (newItemToSelect: Item) => {
 
 const tryChangeFocus = (newItemToFocus: Item) => {
   canvas.focusedItem = newItemToFocus;
+};
+
+const clamp = (value: number, min: number, max: number) => {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
 };

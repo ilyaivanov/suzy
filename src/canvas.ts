@@ -10,18 +10,42 @@ type MyCanvas = {
   ctx: CanvasRenderingContext2D;
 
   focusedItem: Item | undefined;
+
+  pageOffset: number;
+
+  pageHeight: number;
 };
 
-export const drawCanvas = (
-  { ctx, canvasEl, focusedItem }: MyCanvas,
-  tree: Tree
-) => {
+export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
+  const { ctx, canvasEl, focusedItem } = canvas;
   if (!focusedItem) return;
 
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
-  let rowTop = isRoot(focusedItem) ? 0 : constants.focusedRowHeight;
+  let rowTop = -canvas.pageOffset;
+
+  //Focused title
+  if (!isRoot(focusedItem)) {
+    ctx.fillStyle = "white";
+    ctx.textBaseline = "middle";
+    ctx.font = `${constants.focusedFontSize}px ${constants.font}`;
+    ctx.fillText(
+      focusedItem.title,
+      constants.leftRightCanvasPadding +
+        constants.squareSize +
+        constants.textLeftMargin,
+      constants.focusedRowHeight / 2 + rowTop + 2 //moving down by eye for two pixels
+    );
+
+    //duplication
+    if (focusedItem == tree.selectedItem) {
+      ctx.fillStyle = `rgba(255,255,255,${constants.selectedBarAlpha})`;
+      ctx.fillRect(0, rowTop, 10000, constants.focusedRowHeight);
+    }
+  }
+
+  rowTop += isRoot(focusedItem) ? 0 : constants.focusedRowHeight;
 
   const leftMargin = Math.max((canvasEl.width - constants.maxWidth) / 2, 0);
   const onItem = (item: Item, level: number) => {
@@ -70,28 +94,29 @@ export const drawCanvas = (
     if (item.isOpen) item.children.forEach((sub) => onItem(sub, level + 1));
   };
 
-  //Focused title
-  if (!isRoot(focusedItem)) {
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "middle";
-    ctx.font = `${constants.focusedFontSize}px ${constants.font}`;
-    ctx.fillText(
-      focusedItem.title,
-      constants.leftRightCanvasPadding +
-        constants.squareSize +
-        constants.textLeftMargin,
-      constants.focusedRowHeight / 2 + 2 //moving downt by eye for two pixels
-    );
-
-    //duplication
-    if (focusedItem == tree.selectedItem) {
-      ctx.fillStyle = `rgba(255,255,255,${constants.selectedBarAlpha})`;
-      ctx.fillRect(0, 0, 10000, constants.focusedRowHeight);
-    }
-  }
-
   focusedItem?.children.forEach((child) =>
     onItem(child, isRoot(focusedItem) ? 0 : 1)
+  );
+
+  canvas.pageHeight = rowTop + canvas.pageOffset + constants.bottomPageMargin;
+  drawScroll(canvas);
+};
+
+const drawScroll = (canvas: MyCanvas) => {
+  const { pageHeight } = canvas;
+  const canvasWidth = canvas.canvasEl.width;
+  const canvasHeight = canvas.canvasEl.height;
+  const scrollWidth = 12;
+  const scrollHeight = (canvasHeight * canvasHeight) / pageHeight;
+
+  const scrollOffset = canvas.pageOffset * (canvasHeight / pageHeight);
+
+  canvas.ctx.fillStyle = "gray";
+  canvas.ctx.fillRect(
+    canvasWidth - scrollWidth,
+    scrollOffset,
+    scrollWidth,
+    scrollHeight
   );
 };
 
@@ -136,6 +161,8 @@ export const createCanvas = (): MyCanvas => {
     // waiting until container is added into DOM to set dimensions
     width: 0,
     height: 0,
+    pageOffset: 0,
+    pageHeight: 0,
   };
 };
 

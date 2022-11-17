@@ -8,6 +8,8 @@ export default {
   leftRightCanvasPadding: 20,
 
   maxWidth: 800,
+
+  bottomPageMargin: 60,
   xStep: 25,
 
   squareSize: 7,
