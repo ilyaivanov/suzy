@@ -1,6 +1,7 @@
 import constants from "./constants";
 import { isRoot, Item, Tree } from "./core";
 import { div } from "./html";
+import { buildViews, View } from "./layouter";
 
 type MyCanvas = {
   width: number;
@@ -20,62 +21,45 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   const { ctx, canvasEl, focusedItem } = canvas;
   if (!focusedItem) return;
 
+  let views: View[] = [];
+
+  let lastY = 0;
+  buildViews(canvasEl.width, focusedItem, (view) => {
+    views.push(view);
+    lastY = view.y;
+  });
+
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
-  let rowTop = -canvas.pageOffset;
+  ctx.translate(0, -canvas.pageOffset);
 
-  //Focused title
-  if (!isRoot(focusedItem)) {
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "middle";
-    ctx.font = `${constants.focusedFontSize}px ${constants.font}`;
-    ctx.fillText(
-      focusedItem.title,
-      constants.leftRightCanvasPadding +
-        constants.squareSize +
-        constants.textLeftMargin,
-      constants.focusedRowHeight / 2 + rowTop + 2 //moving down by eye for two pixels
-    );
-
-    //duplication
-    if (focusedItem == tree.selectedItem) {
-      ctx.fillStyle = `rgba(255,255,255,${constants.selectedBarAlpha})`;
-      ctx.fillRect(0, rowTop, 10000, constants.focusedRowHeight);
-    }
-  }
-
-  rowTop += isRoot(focusedItem) ? 0 : constants.focusedRowHeight;
-
-  const leftMargin = Math.max((canvasEl.width - constants.maxWidth) / 2, 0);
-  const onItem = (item: Item, level: number) => {
-    const squareLeft =
-      leftMargin + constants.leftRightCanvasPadding + level * constants.xStep;
-
-    drawRectAtCenter(
-      ctx,
-      // need to extract rounding into separate function to make pixel perfect rectangles
-      squareLeft + constants.squareSize / 2 + 0.5,
-      rowTop + constants.rowHeight / 2,
-      constants.squareSize,
-      "#FFFFFF",
-      item.children.length > 0
-    );
+  for (const view of views) {
+    if (view.item !== focusedItem)
+      drawRectAtCenter(
+        ctx,
+        // need to extract rounding into separate function to make pixel perfect rectangles
+        view.x + constants.squareSize / 2,
+        view.y + view.rowHeight / 2,
+        constants.squareSize,
+        "#FFFFFF",
+        view.item.children.length > 0
+      );
 
     ctx.fillStyle = "white";
-    ctx.font = `${constants.fontSize}px ${constants.font}`;
+    ctx.font = `${view.fontWeight} ${view.fontSize}px ${constants.font}`;
     ctx.textBaseline = "middle";
     ctx.fillText(
-      item.title,
-      squareLeft + constants.squareSize + constants.textLeftMargin,
-      rowTop + constants.rowHeight / 2
+      view.item.title,
+      view.x + constants.squareSize + constants.textLeftMargin,
+      view.y + view.rowHeight / 2
     );
 
-    if (item == tree.selectedItem) {
+    if (view.item == tree.selectedItem) {
       drawFullWidthBar(
         ctx,
-        rowTop,
-        constants.rowHeight,
+        view.y,
+        view.rowHeight,
         `rgba(255,255,255,${constants.selectedBarAlpha})`
       );
     }
@@ -84,28 +68,24 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
       ctx.strokeStyle = "gray";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(0, rowTop);
-      ctx.lineTo(10000, rowTop);
+      ctx.moveTo(0, view.y);
+      ctx.lineTo(10000, view.y);
       ctx.stroke();
     }
+  }
 
-    rowTop += constants.rowHeight;
+  canvas.pageHeight = lastY + constants.rowHeight + constants.bottomPageMargin;
 
-    if (item.isOpen) item.children.forEach((sub) => onItem(sub, level + 1));
-  };
-
-  focusedItem?.children.forEach((child) =>
-    onItem(child, isRoot(focusedItem) ? 0 : 1)
-  );
-
-  canvas.pageHeight = rowTop + canvas.pageOffset + constants.bottomPageMargin;
+  ctx.resetTransform();
   drawScroll(canvas);
 };
 
 const drawScroll = (canvas: MyCanvas) => {
   const { pageHeight } = canvas;
-  const canvasWidth = canvas.canvasEl.width;
   const canvasHeight = canvas.canvasEl.height;
+  if (pageHeight <= canvasHeight) return;
+
+  const canvasWidth = canvas.canvasEl.width;
   const scrollWidth = 12;
   const scrollHeight = (canvasHeight * canvasHeight) / pageHeight;
 
