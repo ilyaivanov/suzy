@@ -20,4 +20,6 @@ export default {
   textLeftMargin: 7,
 
   selectedBarAlpha: 0.12,
+
+  lineExtraSpace: 3,
 };

@@ -8,7 +8,7 @@ export type View = {
   fontWeight: number;
   rowHeight: number;
 
-  lineHeight: number | undefined;
+  childrenHeight: number | undefined;
   item: Item;
 };
 
@@ -30,7 +30,7 @@ export const buildViews = (
       fontSize: constants.focusedFontSize,
       rowHeight: constants.focusedRowHeight,
       fontWeight: 500,
-      lineHeight: undefined,
+      childrenHeight: undefined,
     });
     rowTop += constants.focusedRowHeight;
   }
@@ -43,7 +43,7 @@ export const buildViews = (
       rowHeight: constants.rowHeight,
       fontSize: constants.fontSize,
       fontWeight: 400,
-      lineHeight: undefined,
+      childrenHeight: undefined,
     };
     rowTop += constants.rowHeight;
 
@@ -53,7 +53,7 @@ export const buildViews = (
         (acc, sub) => acc + onItem(sub, level + 1),
         0
       );
-      view.lineHeight = childrenHeight;
+      view.childrenHeight = childrenHeight;
     }
 
     cb(view);

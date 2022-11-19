@@ -36,12 +36,14 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.translate(0, -canvas.pageOffset);
 
   for (const view of views) {
+    const circleY = view.y + view.rowHeight / 2;
+
     if (view.item !== focusedItem)
       drawRectAtCenter(
         ctx,
         // need to extract rounding into separate function to make pixel perfect rectangles
         view.x + constants.squareSize / 2,
-        view.y + view.rowHeight / 2,
+        circleY,
         constants.squareSize,
         "#FFFFFF",
         view.item.children.length > 0
@@ -53,7 +55,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
     ctx.fillText(
       view.item.title,
       view.x + constants.squareSize + constants.textLeftMargin,
-      view.y + view.rowHeight / 2
+      circleY
     );
 
     if (view.item == tree.selectedItem) {
@@ -65,18 +67,14 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
       );
     }
 
-    if (view.lineHeight) {
+    if (view.childrenHeight) {
       ctx.strokeStyle = "#383535";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(
-        view.x + constants.squareSize / 2,
-        view.y + view.rowHeight - 3
-      );
-      ctx.lineTo(
-        view.x + constants.squareSize / 2,
-        view.y + view.rowHeight + view.lineHeight + 3
-      );
+      const x = view.x + constants.squareSize / 2;
+      const y = view.y + view.rowHeight;
+      ctx.moveTo(x, y - constants.lineExtraSpace);
+      ctx.lineTo(x, y + view.childrenHeight + constants.lineExtraSpace);
       ctx.stroke();
     }
 
