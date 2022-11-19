@@ -43,7 +43,7 @@ export const buildViews = (
       rowHeight: constants.rowHeight,
       fontSize: constants.fontSize,
       fontWeight: 400,
-      lineHeight: item.isOpen ? 40 : undefined,
+      lineHeight: undefined,
     };
     rowTop += constants.rowHeight;
 
