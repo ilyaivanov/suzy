@@ -13,6 +13,13 @@ import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 const tree = createTree(
   root([
+    item("a", [item("b", [item("b"), item("b")]), item("b", [item("b")])]),
+    item("c"),
+  ])
+);
+
+const tree2 = createTree(
+  root([
     item("First", [
       item("Fooo", [
         item("Music", [

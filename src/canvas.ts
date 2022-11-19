@@ -23,10 +23,11 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
 
   let views: View[] = [];
 
-  let lastY = 0;
+  let pageHeight = 0;
   buildViews(canvasEl.width, focusedItem, (view) => {
     views.push(view);
-    lastY = view.y;
+    if (view.y + view.rowHeight > pageHeight)
+      pageHeight = view.y + view.rowHeight;
   });
 
   ctx.fillStyle = "#1E2021";
@@ -64,6 +65,21 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
       );
     }
 
+    if (view.lineHeight) {
+      ctx.strokeStyle = "#383535";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(
+        view.x + constants.squareSize / 2,
+        view.y + view.rowHeight - 3
+      );
+      ctx.lineTo(
+        view.x + constants.squareSize / 2,
+        view.y + view.rowHeight + view.lineHeight + 3
+      );
+      ctx.stroke();
+    }
+
     if (constants.showBorder) {
       ctx.strokeStyle = "gray";
       ctx.lineWidth = 1;
@@ -74,7 +90,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
     }
   }
 
-  canvas.pageHeight = lastY + constants.rowHeight + constants.bottomPageMargin;
+  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
 
   ctx.resetTransform();
   drawScroll(canvas);
