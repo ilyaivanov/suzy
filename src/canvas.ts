@@ -1,9 +1,9 @@
 import constants from "./constants";
 import { Item, Tree } from "./core";
 import { div } from "./html";
-import { buildViews, drawView, View } from "./layouter";
+import { drawView, View } from "./layouter";
 
-type MyCanvas = {
+export type MyCanvas = {
   width: number;
   height: number;
   canvasEl: HTMLCanvasElement;
@@ -16,24 +16,55 @@ type MyCanvas = {
 
   pageHeight: number;
 
+  getMapWidth: () => number;
+
   views: Map<Item, View>;
 };
 
 export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
-  const { ctx, canvasEl, focusedItem } = canvas;
+  const { ctx, focusedItem, getMapWidth } = canvas;
+  const mapWidth = getMapWidth();
   if (!focusedItem || !tree.selectedItem) return;
 
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
+  ctx.shadowColor = "black";
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = "#1E2021";
+  ctx.fillRect(
+    canvas.canvasEl.width - mapWidth,
+    0,
+    mapWidth,
+    canvas.canvasEl.height
+  );
+
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = "rgba(200,200,200,0.15)";
+  ctx.fillRect(
+    canvas.canvasEl.width - mapWidth,
+    canvas.pageOffset / constants.minimapScale,
+    mapWidth,
+    canvas.canvasEl.height / constants.minimapScale
+  );
+
   ctx.translate(0, -canvas.pageOffset);
 
   for (const [item, view] of canvas.views) {
-    drawView(ctx, view, focusedItem, tree.selectedItem);
+    drawView(canvas, view, focusedItem, tree.selectedItem);
+  }
+
+  // Drawing minimap
+  ctx.resetTransform();
+  ctx.translate(canvas.width - mapWidth, 0);
+  ctx.scale(1 / constants.minimapScale, 1 / constants.minimapScale);
+  for (const [item, view] of canvas.views) {
+    drawView(canvas, view, focusedItem, tree.selectedItem);
   }
 
   ctx.resetTransform();
-  drawScroll(canvas);
+  // drawScroll(canvas);
 };
 
 const drawScroll = (canvas: MyCanvas) => {
@@ -56,47 +87,6 @@ const drawScroll = (canvas: MyCanvas) => {
   );
 };
 
-export const buildCanvasViews = (canvas: MyCanvas) => {
-  let pageHeight = 0;
-
-  buildViews(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
-    canvas.views.set(view.item, view);
-    if (view.y.currentValue + view.rowHeight > pageHeight)
-      pageHeight = view.y.currentValue + view.rowHeight;
-
-    // exit animation
-  });
-
-  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
-};
-
-export const updateCanvasViews = (canvas: MyCanvas) => {
-  let pageHeight = 0;
-  const viewToRemove = new Set(canvas.views.keys());
-  buildViews(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
-    const existingView = canvas.views.get(view.item);
-    // I don't like the fact that view has already springs inside, which we don't use at all
-    if (existingView) {
-      viewToRemove.delete(existingView.item);
-      existingView.y.to(view.y.currentValue);
-      existingView.x.to(view.x.currentValue);
-      existingView.childrenHeight = view.childrenHeight;
-
-      existingView.fontSize = view.fontSize;
-      existingView.fontWeight = view.fontWeight;
-      existingView.rowHeight = view.rowHeight;
-    } else {
-      canvas.views.set(view.item, view);
-      // enter animation
-    }
-    if (view.y.currentValue + view.rowHeight > pageHeight)
-      pageHeight = view.y.currentValue + view.rowHeight;
-  });
-
-  viewToRemove.forEach((key) => canvas.views.delete(key));
-  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
-};
-
 export const createCanvas = (): MyCanvas => {
   const canvas = document.createElement("canvas");
 
@@ -113,6 +103,8 @@ export const createCanvas = (): MyCanvas => {
     height: 0,
     pageOffset: 0,
     pageHeight: 0,
+
+    getMapWidth: () => canvas.width / (constants.minimapScale + 1),
   };
 };
 

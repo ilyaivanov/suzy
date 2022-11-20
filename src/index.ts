@@ -1,16 +1,11 @@
 import { setOnTick } from "./animations";
-import {
-  buildCanvasViews,
-  createCanvas,
-  drawCanvas,
-  resizeCanvas,
-  updateCanvasViews,
-} from "./canvas";
+import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import { getItemAbove, getItemBelow, isOneOfTheParents, Item } from "./core";
 import { div } from "./html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 import big from "./data.big";
+import { buildCanvasViews, updateCanvasViews } from "./layouter";
 
 const tree = big;
 

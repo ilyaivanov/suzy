@@ -22,4 +22,6 @@ export default {
   selectedBarAlpha: 0.12,
 
   lineExtraSpace: 3,
+
+  minimapScale: 9,
 };

@@ -1,6 +1,7 @@
 import { spring, Spring } from "./animations";
 import constants from "./constants";
 import { isRoot, Item } from "./core";
+import type { MyCanvas } from "./canvas";
 
 export type View = {
   x: Spring;
@@ -15,7 +16,48 @@ export type View = {
   opacity: Spring;
 };
 
-export const buildViews = (
+export const buildCanvasViews = (canvas: MyCanvas) => {
+  let pageHeight = 0;
+
+  traverseOpenItems(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+    canvas.views.set(view.item, view);
+    if (view.y.currentValue + view.rowHeight > pageHeight)
+      pageHeight = view.y.currentValue + view.rowHeight;
+
+    // exit animation
+  });
+
+  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
+};
+
+export const updateCanvasViews = (canvas: MyCanvas) => {
+  let pageHeight = 0;
+  const viewToRemove = new Set(canvas.views.keys());
+  traverseOpenItems(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+    const existingView = canvas.views.get(view.item);
+    // I don't like the fact that view has already springs inside, which we don't use at all
+    if (existingView) {
+      viewToRemove.delete(existingView.item);
+      existingView.y.to(view.y.currentValue);
+      existingView.x.to(view.x.currentValue);
+      existingView.childrenHeight = view.childrenHeight;
+
+      existingView.fontSize = view.fontSize;
+      existingView.fontWeight = view.fontWeight;
+      existingView.rowHeight = view.rowHeight;
+    } else {
+      canvas.views.set(view.item, view);
+      // enter animation
+    }
+    if (view.y.currentValue + view.rowHeight > pageHeight)
+      pageHeight = view.y.currentValue + view.rowHeight;
+  });
+
+  viewToRemove.forEach((key) => canvas.views.delete(key));
+  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
+};
+
+const traverseOpenItems = (
   canvasWidth: number,
   focused: Item,
   cb: (view: View) => void
@@ -70,13 +112,13 @@ export const buildViews = (
 };
 
 export const drawView = (
-  ctx: CanvasRenderingContext2D,
+  canvas: MyCanvas,
   view: View,
   focusedItem: Item,
   selectedItem: Item
 ) => {
   const circleY = view.y.currentValue + view.rowHeight / 2;
-
+  const { ctx } = canvas;
   if (view.item !== focusedItem)
     drawRectAtCenter(
       ctx,
@@ -99,7 +141,7 @@ export const drawView = (
 
   if (view.item == selectedItem) {
     drawFullWidthBar(
-      ctx,
+      canvas,
       view.y.currentValue,
       view.rowHeight,
       `rgba(255,255,255,${constants.selectedBarAlpha})`
@@ -128,13 +170,13 @@ export const drawView = (
 };
 
 const drawFullWidthBar = (
-  ctx: CanvasRenderingContext2D,
+  { ctx, width, getMapWidth }: MyCanvas,
   y: number,
   height: number,
   color: string
 ) => {
   ctx.fillStyle = color;
-  ctx.fillRect(0, y, 10000, height);
+  ctx.fillRect(0, y, width - getMapWidth(), height);
 };
 
 const drawRectAtCenter = (
