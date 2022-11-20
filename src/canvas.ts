@@ -1,7 +1,7 @@
 import constants from "./constants";
-import { isRoot, Item, Tree } from "./core";
+import { Item, Tree } from "./core";
 import { div } from "./html";
-import { buildViews, View } from "./layouter";
+import { buildViews, drawView, View } from "./layouter";
 
 type MyCanvas = {
   width: number;
@@ -15,80 +15,22 @@ type MyCanvas = {
   pageOffset: number;
 
   pageHeight: number;
+
+  views: Map<Item, View>;
 };
 
 export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   const { ctx, canvasEl, focusedItem } = canvas;
-  if (!focusedItem) return;
-
-  let views: View[] = [];
-
-  let pageHeight = 0;
-  buildViews(canvasEl.width, focusedItem, (view) => {
-    views.push(view);
-    if (view.y + view.rowHeight > pageHeight)
-      pageHeight = view.y + view.rowHeight;
-  });
+  if (!focusedItem || !tree.selectedItem) return;
 
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
   ctx.translate(0, -canvas.pageOffset);
 
-  for (const view of views) {
-    const circleY = view.y + view.rowHeight / 2;
-
-    if (view.item !== focusedItem)
-      drawRectAtCenter(
-        ctx,
-        // need to extract rounding into separate function to make pixel perfect rectangles
-        view.x + constants.squareSize / 2,
-        circleY,
-        constants.squareSize,
-        "#FFFFFF",
-        view.item.children.length > 0
-      );
-
-    ctx.fillStyle = "white";
-    ctx.font = `${view.fontWeight} ${view.fontSize}px ${constants.font}`;
-    ctx.textBaseline = "middle";
-    ctx.fillText(
-      view.item.title,
-      view.x + constants.squareSize + constants.textLeftMargin,
-      circleY
-    );
-
-    if (view.item == tree.selectedItem) {
-      drawFullWidthBar(
-        ctx,
-        view.y,
-        view.rowHeight,
-        `rgba(255,255,255,${constants.selectedBarAlpha})`
-      );
-    }
-
-    if (view.childrenHeight) {
-      ctx.strokeStyle = "#383535";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const x = view.x + constants.squareSize / 2;
-      const y = view.y + view.rowHeight;
-      ctx.moveTo(x, y - constants.lineExtraSpace);
-      ctx.lineTo(x, y + view.childrenHeight + constants.lineExtraSpace);
-      ctx.stroke();
-    }
-
-    if (constants.showBorder) {
-      ctx.strokeStyle = "gray";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, view.y);
-      ctx.lineTo(10000, view.y);
-      ctx.stroke();
-    }
+  for (const [item, view] of canvas.views) {
+    drawView(ctx, view, focusedItem, tree.selectedItem);
   }
-
-  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
 
   ctx.resetTransform();
   drawScroll(canvas);
@@ -114,32 +56,40 @@ const drawScroll = (canvas: MyCanvas) => {
   );
 };
 
-const drawFullWidthBar = (
-  ctx: CanvasRenderingContext2D,
-  y: number,
-  height: number,
-  color: string
-) => {
-  ctx.fillStyle = color;
-  ctx.fillRect(0, y, 10000, height);
+export const buildCanvasViews = (canvas: MyCanvas) => {
+  let pageHeight = 0;
+
+  buildViews(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+    canvas.views.set(view.item, view);
+    if (view.y.currentValue + view.rowHeight > pageHeight)
+      pageHeight = view.y.currentValue + view.rowHeight;
+
+    // exit animation
+  });
+
+  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
 };
 
-const drawRectAtCenter = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  side: number,
-  color: string,
-  isOutlined = false
-) => {
-  if (isOutlined) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x - side / 2 - 0.5, y - side / 2 - 0.5, side, side);
-  } else {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x - side / 2, y - side / 2, side - 1, side - 1);
-  }
+export const updateCanvasViews = (canvas: MyCanvas) => {
+  let pageHeight = 0;
+  const viewToRemove = new Set(canvas.views.keys());
+  buildViews(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+    const existingView = canvas.views.get(view.item);
+    // I don't like the fact that view has already springs inside, which we don't use at all
+    if (existingView) {
+      viewToRemove.delete(existingView.item);
+      existingView.y.to(view.y.currentValue);
+      existingView.x.to(view.x.currentValue);
+    } else {
+      canvas.views.set(view.item, view);
+      // enter animation
+    }
+    if (view.y.currentValue + view.rowHeight > pageHeight)
+      pageHeight = view.y.currentValue + view.rowHeight;
+  });
+
+  viewToRemove.forEach((key) => canvas.views.delete(key));
+  canvas.pageHeight = pageHeight + constants.bottomPageMargin;
 };
 
 export const createCanvas = (): MyCanvas => {
@@ -150,6 +100,7 @@ export const createCanvas = (): MyCanvas => {
     container: div("canvas-container", canvas),
     ctx: canvas.getContext("2d")!,
 
+    views: new Map(),
     focusedItem: undefined,
 
     // waiting until container is added into DOM to set dimensions

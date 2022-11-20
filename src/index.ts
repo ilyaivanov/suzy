@@ -1,4 +1,11 @@
-import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
+import { setOnTick, spring } from "./animations";
+import {
+  buildCanvasViews,
+  createCanvas,
+  drawCanvas,
+  resizeCanvas,
+  updateCanvasViews,
+} from "./canvas";
 import {
   createTree,
   getItemAbove,
@@ -11,112 +18,16 @@ import {
 import { div } from "./html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-const tree = createTree(
+import big from "./data.big";
+
+const tree2 = createTree(
   root([
     item("a", [item("b", [item("b"), item("b")]), item("b", [item("b")])]),
     item("c"),
   ])
 );
+const tree = big;
 
-const tree2 = createTree(
-  root([
-    item("First", [
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro", [item("Electro 1")]),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-    ]),
-
-    item("Second", [
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-      item("Fooo", [
-        item("Music", [
-          item("Ambient"),
-          item("Electro"),
-          item("Metal", [
-            item("Music", [item("Ambient"), item("Electro"), item("Metal")]),
-          ]),
-        ]),
-      ]),
-    ]),
-  ])
-);
 const canvas = createCanvas();
 canvas.focusedItem = tree.root;
 const redrawCanvas = () => drawCanvas(canvas, tree);
@@ -131,6 +42,7 @@ const app = div(
 
 const resizeAndDraw = () => {
   resizeCanvas(canvas);
+  buildCanvasViews(canvas);
   redrawCanvas();
 };
 
@@ -163,13 +75,16 @@ document.addEventListener("keydown", (e) => {
     const itemAbove = getItemAbove(tree.selectedItem);
     if (itemAbove) tryChangeSelection(itemAbove);
   } else if (e.code === "ArrowLeft" && tree.selectedItem) {
-    if (tree.selectedItem.isOpen) tree.selectedItem.isOpen = false;
-    else if (tree.selectedItem.parent) {
+    if (tree.selectedItem.isOpen) {
+      tree.selectedItem.isOpen = false;
+      updateCanvasViews(canvas);
+    } else if (tree.selectedItem.parent) {
       tryChangeSelection(tree.selectedItem.parent);
     }
   } else if (e.code === "ArrowRight" && tree.selectedItem) {
     if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
       tree.selectedItem.isOpen = true;
+      updateCanvasViews(canvas);
     } else if (tree.selectedItem.children.length > 0) {
       tryChangeSelection(tree.selectedItem.children[0]);
     }
@@ -204,3 +119,5 @@ const clamp = (value: number, min: number, max: number) => {
   if (value > max) return max;
   return value;
 };
+
+setOnTick(redrawCanvas);
