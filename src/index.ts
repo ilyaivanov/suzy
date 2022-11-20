@@ -1,4 +1,4 @@
-import { setOnTick, spring } from "./animations";
+import { setOnTick } from "./animations";
 import {
   buildCanvasViews,
   createCanvas,
@@ -6,26 +6,12 @@ import {
   resizeCanvas,
   updateCanvasViews,
 } from "./canvas";
-import {
-  createTree,
-  getItemAbove,
-  getItemBelow,
-  isOneOfTheParents,
-  Item,
-  item,
-  root,
-} from "./core";
+import { getItemAbove, getItemBelow, isOneOfTheParents, Item } from "./core";
 import { div } from "./html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 import big from "./data.big";
 
-const tree2 = createTree(
-  root([
-    item("a", [item("b", [item("b"), item("b")]), item("b", [item("b")])]),
-    item("c"),
-  ])
-);
 const tree = big;
 
 const canvas = createCanvas();
@@ -77,19 +63,17 @@ document.addEventListener("keydown", (e) => {
   } else if (e.code === "ArrowLeft" && tree.selectedItem) {
     if (tree.selectedItem.isOpen) {
       tree.selectedItem.isOpen = false;
-      updateCanvasViews(canvas);
     } else if (tree.selectedItem.parent) {
       tryChangeSelection(tree.selectedItem.parent);
     }
   } else if (e.code === "ArrowRight" && tree.selectedItem) {
     if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
       tree.selectedItem.isOpen = true;
-      updateCanvasViews(canvas);
     } else if (tree.selectedItem.children.length > 0) {
       tryChangeSelection(tree.selectedItem.children[0]);
     }
   }
-
+  updateCanvasViews(canvas);
   redrawCanvas();
 });
 

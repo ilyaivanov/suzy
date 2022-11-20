@@ -80,6 +80,11 @@ export const updateCanvasViews = (canvas: MyCanvas) => {
       viewToRemove.delete(existingView.item);
       existingView.y.to(view.y.currentValue);
       existingView.x.to(view.x.currentValue);
+      existingView.childrenHeight = view.childrenHeight;
+
+      existingView.fontSize = view.fontSize;
+      existingView.fontWeight = view.fontWeight;
+      existingView.rowHeight = view.rowHeight;
     } else {
       canvas.views.set(view.item, view);
       // enter animation
