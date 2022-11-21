@@ -79,12 +79,14 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("wheel", (e) => {
-  canvas.pageOffset = clamp(
-    canvas.pageOffset + e.deltaY,
-    0,
-    canvas.pageHeight - canvas.height
-  );
-  redrawCanvas();
+  if (canvas.pageHeight > canvas.height) {
+    canvas.pageOffset = clamp(
+      canvas.pageOffset + e.deltaY,
+      0,
+      canvas.pageHeight - canvas.height
+    );
+    redrawCanvas();
+  }
 });
 
 const tryChangeSelection = (newItemToSelect: Item) => {
