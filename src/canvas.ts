@@ -16,18 +16,16 @@ export type MyCanvas = {
 
   pageHeight: number;
 
-  getMapWidth: () => number;
-
   views: Map<Item, View>;
 
   scale: number;
 };
 
 export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
-  const { ctx, focusedItem, getMapWidth } = canvas;
-  const mapWidth = getMapWidth();
+  const { ctx, focusedItem } = canvas;
 
-  ctx.scale(canvas.scale, canvas.scale);
+  setDefaultTransform(canvas);
+
   if (!focusedItem || !tree.selectedItem) return;
 
   ctx.fillStyle = "#1E2021";
@@ -40,30 +38,26 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   }
 
   // Drawing minimap
-  ctx.resetTransform();
-  ctx.scale(canvas.scale, canvas.scale);
+  setDefaultTransform(canvas);
+  const mapWidth = getMapWidth(canvas);
+  ctx.translate(canvas.width - mapWidth, 0);
 
   ctx.shadowColor = "black";
   ctx.shadowBlur = 10;
   ctx.fillStyle = "#1E2021";
-  ctx.fillRect(canvas.width - mapWidth, 0, mapWidth, canvas.height);
+  ctx.fillRect(0, 0, mapWidth, canvas.height);
 
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = "rgba(200,200,200,0.15)";
   ctx.fillRect(
-    canvas.width - mapWidth,
+    0,
     canvas.pageOffset / constants.minimapScale,
     mapWidth,
     canvas.height / constants.minimapScale
   );
 
-  ctx.resetTransform();
-  ctx.translate(canvas.canvasEl.width - mapWidth * canvas.scale, 0);
-  ctx.scale(
-    canvas.scale / constants.minimapScale,
-    canvas.scale / constants.minimapScale
-  );
+  ctx.scale(1 / constants.minimapScale, 1 / constants.minimapScale);
   for (const [item, view] of canvas.views) {
     drawView(ctx, view, focusedItem, tree.selectedItem);
   }
@@ -89,8 +83,6 @@ export const createCanvas = (): MyCanvas => {
     pageHeight: 0,
 
     scale,
-
-    getMapWidth: () => canvas.width / scale / (constants.minimapScale + 1),
   };
 };
 
@@ -104,10 +96,17 @@ export const resizeCanvas = (canvas: MyCanvas) => {
   canvas.canvasEl.style.width = width + "px";
   canvas.canvasEl.style.height = height + "px";
 
-  // inner logical dimensions (akka DOM pixels)
+  // inner logical dimensions (aka DOM pixels)
   canvas.canvasEl.width = width * canvas.scale;
   canvas.canvasEl.height = height * canvas.scale;
 
   canvas.width = width;
   canvas.height = height;
 };
+
+const setDefaultTransform = (canvas: MyCanvas) => {
+  canvas.ctx.resetTransform();
+  canvas.ctx.scale(canvas.scale, canvas.scale);
+};
+const getMapWidth = (canvas: MyCanvas) =>
+  canvas.width / (constants.minimapScale + 1);
