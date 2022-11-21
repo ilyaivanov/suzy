@@ -13,8 +13,8 @@ export default {
   xStep: 25,
 
   squareSize: 7,
+  font: "-apple-system, BlinkMacSystemFont, 'Segoe UI'",
 
-  font: "Segoe UI",
   showBorder: false,
   showSidebarInitially: false,
   textLeftMargin: 7,

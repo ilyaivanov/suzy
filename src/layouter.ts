@@ -20,7 +20,7 @@ export type View = {
 export const buildCanvasViews = (canvas: MyCanvas) => {
   let pageHeight = 0;
 
-  traverseOpenItems(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+  traverseOpenItems(canvas.width, canvas.focusedItem!, (view) => {
     canvas.views.set(view.item, view);
     if (view.y.currentValue + view.rowHeight > pageHeight)
       pageHeight = view.y.currentValue + view.rowHeight;
@@ -34,7 +34,7 @@ export const buildCanvasViews = (canvas: MyCanvas) => {
 export const updateCanvasViews = (canvas: MyCanvas) => {
   let pageHeight = 0;
   const viewToRemove = new Set(canvas.views.keys());
-  traverseOpenItems(canvas.canvasEl.width, canvas.focusedItem!, (view) => {
+  traverseOpenItems(canvas.width, canvas.focusedItem!, (view) => {
     const existingView = canvas.views.get(view.item);
     // I don't like the fact that view has already springs inside, which we don't use at all
     if (existingView) {

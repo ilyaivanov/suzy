@@ -19,11 +19,15 @@ export type MyCanvas = {
   getMapWidth: () => number;
 
   views: Map<Item, View>;
+
+  scale: number;
 };
 
 export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   const { ctx, focusedItem, getMapWidth } = canvas;
   const mapWidth = getMapWidth();
+
+  ctx.scale(canvas.scale, canvas.scale);
   if (!focusedItem || !tree.selectedItem) return;
 
   ctx.fillStyle = "#1E2021";
@@ -32,21 +36,16 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.shadowColor = "black";
   ctx.shadowBlur = 10;
   ctx.fillStyle = "#1E2021";
-  ctx.fillRect(
-    canvas.canvasEl.width - mapWidth,
-    0,
-    mapWidth,
-    canvas.canvasEl.height
-  );
+  ctx.fillRect(canvas.width - mapWidth, 0, mapWidth, canvas.height);
 
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = "rgba(200,200,200,0.15)";
   ctx.fillRect(
-    canvas.canvasEl.width - mapWidth,
+    canvas.width - mapWidth,
     canvas.pageOffset / constants.minimapScale,
     mapWidth,
-    canvas.canvasEl.height / constants.minimapScale
+    canvas.height / constants.minimapScale
   );
 
   ctx.translate(0, -canvas.pageOffset);
@@ -57,39 +56,21 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
 
   // Drawing minimap
   ctx.resetTransform();
-  ctx.translate(canvas.width - mapWidth, 0);
-  ctx.scale(1 / constants.minimapScale, 1 / constants.minimapScale);
+  ctx.translate(canvas.canvasEl.width - mapWidth * canvas.scale, 0);
+  ctx.scale(
+    canvas.scale / constants.minimapScale,
+    canvas.scale / constants.minimapScale
+  );
   for (const [item, view] of canvas.views) {
     drawView(canvas, view, focusedItem, tree.selectedItem);
   }
 
   ctx.resetTransform();
-  // drawScroll(canvas);
-};
-
-const drawScroll = (canvas: MyCanvas) => {
-  const { pageHeight } = canvas;
-  const canvasHeight = canvas.canvasEl.height;
-  if (pageHeight <= canvasHeight) return;
-
-  const canvasWidth = canvas.canvasEl.width;
-  const scrollWidth = 12;
-  const scrollHeight = (canvasHeight * canvasHeight) / pageHeight;
-
-  const scrollOffset = canvas.pageOffset * (canvasHeight / pageHeight);
-
-  canvas.ctx.fillStyle = "gray";
-  canvas.ctx.fillRect(
-    canvasWidth - scrollWidth,
-    scrollOffset,
-    scrollWidth,
-    scrollHeight
-  );
 };
 
 export const createCanvas = (): MyCanvas => {
   const canvas = document.createElement("canvas");
-
+  const scale = window.devicePixelRatio || 1;
   return {
     canvasEl: canvas,
     container: div("canvas-container", canvas),
@@ -104,15 +85,35 @@ export const createCanvas = (): MyCanvas => {
     pageOffset: 0,
     pageHeight: 0,
 
-    getMapWidth: () => canvas.width / (constants.minimapScale + 1),
+    scale,
+
+    getMapWidth: () => canvas.width / scale / (constants.minimapScale + 1),
   };
 };
 
 // setting canvas dimensions exactly as it's container
 // canvas is not an usual element in a sense that I need to explicitly set width and height
 export const resizeCanvas = (canvas: MyCanvas) => {
-  canvas.width = canvas.container.clientWidth;
-  canvas.height = canvas.container.clientHeight;
-  canvas.canvasEl.width = canvas.width;
-  canvas.canvasEl.height = canvas.height;
+  const width = canvas.container.clientWidth;
+  const height = canvas.container.clientHeight;
+
+  // Set up CSS size.
+  canvas.canvasEl.style.width = width + "px";
+  canvas.canvasEl.style.height = height + "px";
+
+  canvas.width = width;
+  canvas.height = height;
+  canvas.canvasEl.width = width * canvas.scale;
+  canvas.canvasEl.height = height * canvas.scale;
+
+  // canvas.style.height = canvas.style.height || canvas.height + 'px';
+
+  // // Resize canvas and scale future draws.
+  // canvas.width = Math.ceil(canvas.width * scaleFactor);
+  // canvas.height = Math.ceil(canvas.height * scaleFactor);
+  // var ctx = canvas.getContext('2d');
+  // ctx.scale(scaleFactor, scaleFactor);
+
+  // canvas.canvasEl.width = canvas.width;
+  // canvas.canvasEl.height = canvas.height;
 };
