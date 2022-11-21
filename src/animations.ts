@@ -1,6 +1,7 @@
 export interface Animated {
   isAnimating: boolean;
   tick: (deltaTime: number) => void;
+  onFinish?: () => void;
 }
 
 const ANIMATION_SLOW_COEF = 1; // how much times to slow animation
@@ -27,7 +28,10 @@ const tick = (currentTime: number) => {
   }
 
   if (animationsToRemove.length > 0) {
-    animationsToRemove.forEach((anim) => runningAnimations.delete(anim));
+    animationsToRemove.forEach((anim) => {
+      if (anim.onFinish) anim.onFinish();
+      runningAnimations.delete(anim);
+    });
   }
 
   if (runningAnimations.size !== 0) requestAnimationFrame(tick);
@@ -55,7 +59,6 @@ export type Spring = {
   lastValue: number;
   currentValue: number;
   targetValue: number;
-  to: (newV: number) => void;
 } & Animated;
 
 export const spring = (v: number) => {
@@ -64,14 +67,21 @@ export const spring = (v: number) => {
     isAnimating: false,
     lastValue: v,
     targetValue: v,
-    to: (newV: number) => {
-      anim.isAnimating = true;
-      anim.targetValue = newV;
-      addAnimation(anim);
-    },
     tick: springTick,
   };
   return anim;
+};
+
+export const to = (anim: Spring, val: number) => {
+  anim.isAnimating = true;
+  anim.targetValue = val;
+  addAnimation(anim);
+};
+
+export const fromTo = (anim: Spring, from: number, val: number) => {
+  anim.currentValue = from;
+  anim.lastValue = from;
+  to(anim, val);
 };
 
 const precision = 0.1;

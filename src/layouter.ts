@@ -1,4 +1,4 @@
-import { spring, Spring } from "./animations";
+import { fromTo, spring, Spring, to } from "./animations";
 import constants from "./constants";
 import { isRoot, Item } from "./core";
 import type { MyCanvas } from "./canvas";
@@ -13,6 +13,7 @@ export type View = {
   childrenHeight: number | undefined;
   item: Item;
 
+  isDisappearing: boolean;
   opacity: Spring;
 };
 
@@ -38,22 +39,39 @@ export const updateCanvasViews = (canvas: MyCanvas) => {
     // I don't like the fact that view has already springs inside, which we don't use at all
     if (existingView) {
       viewToRemove.delete(existingView.item);
-      existingView.y.to(view.y.currentValue);
-      existingView.x.to(view.x.currentValue);
+
+      if (existingView.isDisappearing) {
+        // Enter animation while it is disappearing
+        to(existingView.opacity, 1);
+        existingView.opacity.onFinish = undefined;
+        existingView.isDisappearing = false;
+      }
+      // Move animation
+      to(existingView.y, view.y.currentValue);
+      to(existingView.x, view.x.currentValue);
       existingView.childrenHeight = view.childrenHeight;
 
       existingView.fontSize = view.fontSize;
       existingView.fontWeight = view.fontWeight;
       existingView.rowHeight = view.rowHeight;
     } else {
+      // Enter animation
       canvas.views.set(view.item, view);
-      // enter animation
+      fromTo(view.opacity, 0, 1);
     }
     if (view.y.currentValue + view.rowHeight > pageHeight)
       pageHeight = view.y.currentValue + view.rowHeight;
   });
 
-  viewToRemove.forEach((key) => canvas.views.delete(key));
+  viewToRemove.forEach((key) => {
+    // exit animation WARNING: needs coordination with enter
+    const view = canvas.views.get(key);
+    if (view) {
+      to(view.opacity, 0);
+      view.isDisappearing = true;
+      view.opacity.onFinish = () => canvas.views.delete(key);
+    }
+  });
   canvas.pageHeight = pageHeight + constants.bottomPageMargin;
 };
 
@@ -77,6 +95,7 @@ const traverseOpenItems = (
       rowHeight: constants.focusedRowHeight,
       fontWeight: 500,
       childrenHeight: undefined,
+      isDisappearing: false,
     });
     rowTop += constants.focusedRowHeight;
   }
@@ -84,13 +103,14 @@ const traverseOpenItems = (
   const onItem = (item: Item, level: number): number => {
     const view: View = {
       x: spring(x + level * constants.xStep),
-      y: spring(rowTop),
+      y: spring(round(rowTop)),
       opacity: spring(1),
       item: item,
       rowHeight: constants.rowHeight,
       fontSize: constants.fontSize,
       fontWeight: 400,
       childrenHeight: undefined,
+      isDisappearing: false,
     };
     rowTop += constants.rowHeight;
 
@@ -119,6 +139,7 @@ export const drawView = (
 ) => {
   const circleY = view.y.currentValue + view.rowHeight / 2;
   const { ctx } = canvas;
+  ctx.globalAlpha = view.opacity.currentValue;
   if (view.item !== focusedItem)
     drawRectAtCenter(
       ctx,
@@ -167,6 +188,7 @@ export const drawView = (
     ctx.lineTo(10000, view.y.currentValue);
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
 };
 
 const drawFullWidthBar = (
@@ -196,3 +218,13 @@ const drawRectAtCenter = (
     ctx.strokeRect(x - side / 2, y - side / 2, side - 1, side - 1);
   }
 };
+
+// Maybe not optimal, need to think how to deal with this
+// 1.6 => 1.5
+// 2.1 => 2.5
+// 2.5 => 2.5
+// 2.6 => 2.5
+// 2.9 => 2.5
+// 3.0 => 3.5
+const roundToHalf = (val: number) => Math.floor(val) + 0.5;
+const round = (val: number) => Math.round(val);

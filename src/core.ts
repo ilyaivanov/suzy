@@ -21,13 +21,32 @@ export const root = (children: Item[]): Item => {
   return root;
 };
 
-export const item = (title: string, children?: Item[]): Item => {
-  const item = {
-    title,
-    children: children || [],
-    isOpen: !!children && children.length > 0,
-  };
-  children?.forEach((c) => (c.parent = item));
+export const item = (
+  title: string,
+  children?: Item[] | Partial<Item>
+): Item => {
+  let item: Item;
+  if (Array.isArray(children))
+    item = {
+      title,
+      children: children || [],
+      isOpen: !!children && children.length > 0,
+    };
+  else if (children)
+    item = {
+      title,
+      children: children.children || [],
+      isOpen: !!children.isOpen,
+    };
+  else {
+    item = {
+      title,
+      children: [],
+      isOpen: false,
+    };
+  }
+
+  item.children?.forEach((c) => (c.parent = item));
   return item;
 };
 
