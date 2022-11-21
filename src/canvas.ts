@@ -1,6 +1,6 @@
 import constants from "./constants";
-import { Item, Tree } from "./core";
-import { div } from "./html";
+import { Item, Tree } from "./tree/core";
+import { div } from "./frame/html";
 import { drawView, View } from "./layouter";
 
 export type MyCanvas = {
@@ -97,23 +97,14 @@ export const resizeCanvas = (canvas: MyCanvas) => {
   const width = canvas.container.clientWidth;
   const height = canvas.container.clientHeight;
 
-  // Set up CSS size.
+  // outer physical minesions (aka CSS pixels)
   canvas.canvasEl.style.width = width + "px";
   canvas.canvasEl.style.height = height + "px";
 
-  canvas.width = width;
-  canvas.height = height;
+  // inner logical dimensions (akka DOM pixels)
   canvas.canvasEl.width = width * canvas.scale;
   canvas.canvasEl.height = height * canvas.scale;
 
-  // canvas.style.height = canvas.style.height || canvas.height + 'px';
-
-  // // Resize canvas and scale future draws.
-  // canvas.width = Math.ceil(canvas.width * scaleFactor);
-  // canvas.height = Math.ceil(canvas.height * scaleFactor);
-  // var ctx = canvas.getContext('2d');
-  // ctx.scale(scaleFactor, scaleFactor);
-
-  // canvas.canvasEl.width = canvas.width;
-  // canvas.canvasEl.height = canvas.height;
+  canvas.width = width;
+  canvas.height = height;
 };

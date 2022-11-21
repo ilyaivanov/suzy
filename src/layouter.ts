@@ -1,6 +1,6 @@
-import { fromTo, spring, Spring, to } from "./animations";
+import { fromTo, spring, Spring, to } from "./frame/animations";
 import constants from "./constants";
-import { isRoot, Item } from "./core";
+import { isRoot, Item } from "./tree/core";
 import type { MyCanvas } from "./canvas";
 
 export type View = {

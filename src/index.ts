@@ -1,11 +1,17 @@
-import { setOnTick } from "./animations";
+import { setOnTick } from "./frame/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
-import { getItemAbove, getItemBelow, isOneOfTheParents, Item } from "./core";
-import { div } from "./html";
+import {
+  getItemAbove,
+  getItemBelow,
+  isOneOfTheParents,
+  Item,
+} from "./tree/core";
+import { div } from "./frame/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./data.big";
+import big from "./tree/data.big";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
+import { clamp } from "./tree/numbers";
 
 const tree = big;
 
@@ -91,12 +97,6 @@ const tryChangeSelection = (newItemToSelect: Item) => {
 
 const tryChangeFocus = (newItemToFocus: Item) => {
   canvas.focusedItem = newItemToFocus;
-};
-
-const clamp = (value: number, min: number, max: number) => {
-  if (value < min) return min;
-  if (value > max) return max;
-  return value;
 };
 
 setOnTick(redrawCanvas);

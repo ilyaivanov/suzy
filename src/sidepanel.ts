@@ -1,4 +1,4 @@
-import { div, inputCheckbox, inputColor, inputRange } from "./html";
+import { div, inputCheckbox, inputColor, inputRange } from "./frame/html";
 import constants from "./constants";
 
 type Props = {
