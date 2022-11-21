@@ -24,6 +24,7 @@ module.exports = (env, argv) => ({
   plugins: [
     new HtmlWebpackPlugin({
       template: "public/index.html",
+      favicon: "public/favicon.svg",
     }),
   ],
   resolve: { extensions: [".ts", ".tsx", ".js", ".json"] },
