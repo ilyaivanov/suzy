@@ -82,7 +82,7 @@ document.addEventListener("wheel", (e) => {
   canvas.pageOffset = clamp(
     canvas.pageOffset + e.deltaY,
     0,
-    canvas.pageHeight - canvas.canvasEl.height
+    canvas.pageHeight - canvas.height
   );
   redrawCanvas();
 });

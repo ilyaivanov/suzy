@@ -132,13 +132,12 @@ const traverseOpenItems = (
 };
 
 export const drawView = (
-  canvas: MyCanvas,
+  ctx: CanvasRenderingContext2D,
   view: View,
   focusedItem: Item,
   selectedItem: Item
 ) => {
   const circleY = view.y.currentValue + view.rowHeight / 2;
-  const { ctx } = canvas;
   ctx.globalAlpha = view.opacity.currentValue;
   if (view.item !== focusedItem)
     drawRectAtCenter(
@@ -162,7 +161,7 @@ export const drawView = (
 
   if (view.item == selectedItem) {
     drawFullWidthBar(
-      canvas,
+      ctx,
       view.y.currentValue,
       view.rowHeight,
       `rgba(255,255,255,${constants.selectedBarAlpha})`
@@ -192,13 +191,13 @@ export const drawView = (
 };
 
 const drawFullWidthBar = (
-  { ctx, width, getMapWidth }: MyCanvas,
+  ctx: CanvasRenderingContext2D,
   y: number,
   height: number,
   color: string
 ) => {
   ctx.fillStyle = color;
-  ctx.fillRect(0, y, width - getMapWidth(), height);
+  ctx.fillRect(0, y, 100000, height);
 };
 
 const drawRectAtCenter = (

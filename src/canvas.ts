@@ -33,6 +33,16 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
+  ctx.translate(0, -canvas.pageOffset);
+
+  for (const [item, view] of canvas.views) {
+    drawView(ctx, view, focusedItem, tree.selectedItem);
+  }
+
+  // Drawing minimap
+  ctx.resetTransform();
+  ctx.scale(canvas.scale, canvas.scale);
+
   ctx.shadowColor = "black";
   ctx.shadowBlur = 10;
   ctx.fillStyle = "#1E2021";
@@ -48,13 +58,6 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
     canvas.height / constants.minimapScale
   );
 
-  ctx.translate(0, -canvas.pageOffset);
-
-  for (const [item, view] of canvas.views) {
-    drawView(canvas, view, focusedItem, tree.selectedItem);
-  }
-
-  // Drawing minimap
   ctx.resetTransform();
   ctx.translate(canvas.canvasEl.width - mapWidth * canvas.scale, 0);
   ctx.scale(
@@ -62,7 +65,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
     canvas.scale / constants.minimapScale
   );
   for (const [item, view] of canvas.views) {
-    drawView(canvas, view, focusedItem, tree.selectedItem);
+    drawView(ctx, view, focusedItem, tree.selectedItem);
   }
 
   ctx.resetTransform();
