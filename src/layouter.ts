@@ -102,8 +102,8 @@ const traverseOpenItems = (
 
   const onItem = (item: Item, level: number): number => {
     const view: View = {
-      x: spring(x + level * constants.xStep),
-      y: spring(round(rowTop)),
+      x: spring(roundToHalf(x + level * constants.xStep)),
+      y: spring(rowTop),
       opacity: spring(1),
       item: item,
       rowHeight: constants.rowHeight,
