@@ -1,15 +1,19 @@
-import { setOnTick } from "./framework/animations";
+import { setOnTick, to } from "./framework/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import {
+  forEachChild,
+  forEachChildIncludingParent,
   getItemAbove,
   getItemBelow,
+  getNextItemToSelectAfterRemove,
   isOneOfTheParents,
   Item,
+  removeChild,
 } from "./tree/core";
 import { div, inputCheckbox, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./tree/data.big";
+import big from "./tree/data.small";
 import {
   buildCanvasViews,
   getTextCoordinates,
@@ -86,6 +90,37 @@ document.addEventListener("keydown", (e) => {
     canvas.editedItem = tree.selectedItem;
     showInput();
     e.preventDefault();
+  } else if (e.code === "Enter" && tree.selectedItem) {
+    const newItem: Item = { title: "", children: [], isOpen: false };
+    if (tree.selectedItem.isOpen) {
+      tree.selectedItem.children = [newItem, ...tree.selectedItem.children];
+      newItem.parent = tree.selectedItem;
+    } else {
+      const parentContext = tree.selectedItem.parent!.children;
+      const index = parentContext.indexOf(tree.selectedItem);
+      parentContext.splice(index + 1, 0, newItem);
+      newItem.parent = tree.selectedItem.parent;
+    }
+    tree.selectedItem = newItem;
+    canvas.editedItem = newItem;
+
+    //need to wait while updateCanvasViews will build the view
+    requestAnimationFrame(showInput);
+  } else if (e.code === "KeyX" && tree.selectedItem) {
+    forEachChildIncludingParent(tree.selectedItem, (child) => {
+      const view = canvas.views.get(child);
+      if (view) {
+        to(view.x, view.x.targetValue - 20);
+        to(view.opacity, 0);
+        view.opacity.onFinish = () => {
+          canvas.views.delete(view.item);
+        };
+      }
+    });
+    //selecting parent item for now for simplicity
+    const itemToSelect = getNextItemToSelectAfterRemove(tree.selectedItem!);
+    removeChild(tree.selectedItem!.parent!, tree.selectedItem!);
+    tree.selectedItem = itemToSelect;
   }
   updateCanvasViews(canvas);
   redrawCanvas();
@@ -149,6 +184,7 @@ function showInput() {
           input = undefined;
           canvas.editedItem = undefined;
           redrawCanvas();
+          e.stopPropagation();
         }
       });
       input.focus();

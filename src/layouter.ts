@@ -47,8 +47,12 @@ export const updateCanvasViews = (canvas: MyCanvas) => {
         existingView.isDisappearing = false;
       }
       // Move animation
-      to(existingView.y, view.y.currentValue);
-      to(existingView.x, view.x.currentValue);
+      if (existingView.x.targetValue !== view.x.targetValue)
+        to(existingView.x, view.x.currentValue);
+
+      if (existingView.y.targetValue !== view.y.targetValue)
+        to(existingView.y, view.y.currentValue);
+
       existingView.childrenHeight = view.childrenHeight;
 
       existingView.fontSize = view.fontSize;

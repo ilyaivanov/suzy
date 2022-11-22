@@ -57,7 +57,7 @@ export const item = (
 
 export const isRoot = (item: Item) => !item.parent;
 
-// export const hasChildren = (item: Item) => item.children.length > 0;
+const hasChildren = (item: Item) => item.children.length > 0;
 
 // // Mutate tree
 
@@ -66,26 +66,52 @@ export const isRoot = (item: Item) => !item.parent;
 //   updateIsOpenFlag(item);
 // };
 
-// export const removeChild = (parent: Item, item: Item) => {
-//   parent.children = parent.children.filter((c) => c !== item);
-//   updateIsOpenFlag(parent);
-// };
+export const removeChild = (parent: Item, item: Item) => {
+  parent.children = parent.children.filter((c) => c !== item);
+  updateIsOpenFlag(parent);
+};
 
+export const getNextItemToSelectAfterRemove = (currentlySelectedItem: Item) => {
+  if (currentlySelectedItem.parent) {
+    const context = currentlySelectedItem.parent.children;
+    const index = context.indexOf(currentlySelectedItem);
+
+    if (context.length == 1) return currentlySelectedItem.parent;
+    else {
+      if (index > 0) return context[index - 1];
+      else return context[index + 1];
+    }
+  }
+  throw new Error(
+    "removing item without a parent " + currentlySelectedItem.title
+  );
+};
 // export const addChildAt = (parent: Item, item: Item, index: number) => {
 //   parent.children.splice(index, 0, item);
 //   item.parent = parent;
 //   updateIsOpenFlag(parent);
 // };
 
-// export const forEachChild = (item: Item, cb: A2<Item, Item>) => {
-//   const traverse = (children: Item[]) => {
-//     children.forEach((c) => {
-//       cb(c, item);
-//       if (hasChildren(c)) forEachChild(c, cb);
-//     });
-//   };
-//   traverse(item.children);
-// };
+export const forEachChild = (
+  item: Item,
+  cb: (child: Item, parent: Item) => void
+) => {
+  const traverse = (children: Item[]) => {
+    children.forEach((c) => {
+      cb(c, item);
+      if (hasChildren(c)) forEachChild(c, cb);
+    });
+  };
+  traverse(item.children);
+};
+
+export const forEachChildIncludingParent = (
+  item: Item,
+  cb: (child: Item, parent: Item) => void
+) => {
+  cb(item, item.parent!);
+  forEachChild(item, cb);
+};
 
 export const isOneOfTheParents = (item: Item, parent: Item) => {
   let current: Item | undefined = item;
