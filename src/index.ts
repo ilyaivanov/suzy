@@ -17,13 +17,18 @@ import big from "./tree/data.small";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
+import { removeItem, undoAction } from "./undoHistory";
 
 const tree = big;
+
+const canvas = createCanvas();
 
 //@ts-expect-error
 window.tree = tree;
 
-const canvas = createCanvas();
+//@ts-expect-error
+window.canvas = canvas;
+
 canvas.focusedItem = tree.root;
 const redrawCanvas = () => drawCanvas(canvas, tree);
 
@@ -158,20 +163,9 @@ document.addEventListener("keydown", (e) => {
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX" && tree.selectedItem) {
-    forEachChildIncludingParent(tree.selectedItem, (child) => {
-      const view = canvas.views.get(child);
-      if (view) {
-        to(view.x, view.x.targetValue - 20);
-        to(view.opacity, 0);
-        view.opacity.onFinish = () => {
-          canvas.views.delete(view.item);
-        };
-      }
-    });
-    //selecting parent item for now for simplicity
-    const itemToSelect = getNextItemToSelectAfterRemove(tree.selectedItem!);
-    removeChild(tree.selectedItem!.parent!, tree.selectedItem!);
-    tree.selectedItem = itemToSelect;
+    removeItem(tree, canvas);
+  } else if (e.code === "KeyZ" && e.metaKey) {
+    undoAction(tree, canvas);
   }
   updateCanvasViews(canvas);
   redrawCanvas();

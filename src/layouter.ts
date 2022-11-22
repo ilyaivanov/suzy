@@ -59,6 +59,7 @@ export const updateCanvasViews = (canvas: MyCanvas) => {
       existingView.fontWeight = view.fontWeight;
       existingView.rowHeight = view.rowHeight;
     } else {
+      console.log("enter animation");
       // Enter animation
       canvas.views.set(view.item, view);
       fromTo(view.opacity, 0, 1);
