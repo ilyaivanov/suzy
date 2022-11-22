@@ -1,4 +1,4 @@
-import { fromTo, spring, Spring, to } from "./frame/animations";
+import { fromTo, spring, Spring, to } from "./framework/animations";
 import constants from "./constants";
 import { isRoot, Item } from "./tree/core";
 import type { MyCanvas } from "./canvas";
@@ -93,7 +93,7 @@ const traverseOpenItems = (
       item: focused,
       fontSize: constants.focusedFontSize,
       rowHeight: constants.focusedRowHeight,
-      fontWeight: 500,
+      fontWeight: 600,
       childrenHeight: undefined,
       isDisappearing: false,
     });
@@ -132,33 +132,31 @@ const traverseOpenItems = (
 };
 
 export const drawView = (
-  ctx: CanvasRenderingContext2D,
+  { ctx, editedItem }: MyCanvas,
   view: View,
   focusedItem: Item,
   selectedItem: Item
 ) => {
-  const circleY = view.y.currentValue + view.rowHeight / 2;
+  const squareY = view.y.currentValue + view.rowHeight / 2;
   ctx.globalAlpha = view.opacity.currentValue;
   if (view.item !== focusedItem)
     drawRectAtCenter(
       ctx,
       // need to extract rounding into separate function to make pixel perfect rectangles
       view.x.currentValue + constants.squareSize / 2,
-      circleY,
+      squareY,
       constants.squareSize,
       "#FFFFFF",
       view.item.children.length > 0
     );
 
-  ctx.fillStyle = "white";
-  ctx.font = `${view.fontWeight} ${view.fontSize}px ${constants.font}`;
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    view.item.title,
-    view.x.currentValue + constants.squareSize + constants.textLeftMargin,
-    circleY
-  );
-
+  if (view.item !== editedItem) {
+    ctx.fillStyle = "white";
+    ctx.font = `${view.fontWeight} ${view.fontSize}px ${constants.font}`;
+    ctx.textBaseline = "middle";
+    const { x, y } = getTextCoordinates(view);
+    ctx.fillText(view.item.title, x, y);
+  }
   if (view.item == selectedItem) {
     drawFullWidthBar(
       ctx,
@@ -190,6 +188,14 @@ export const drawView = (
   ctx.globalAlpha = 1;
 };
 
+export const getTextCoordinates = (view: View) => {
+  const squareY = view.y.currentValue + view.rowHeight / 2;
+  return {
+    y: squareY,
+    x: view.x.currentValue + constants.squareSize + constants.textLeftMargin,
+  };
+};
+
 const drawFullWidthBar = (
   ctx: CanvasRenderingContext2D,
   y: number,
@@ -218,12 +224,5 @@ const drawRectAtCenter = (
   }
 };
 
-// Maybe not optimal, need to think how to deal with this
-// 1.6 => 1.5
-// 2.1 => 2.5
-// 2.5 => 2.5
-// 2.6 => 2.5
-// 2.9 => 2.5
-// 3.0 => 3.5
 const roundToHalf = (val: number) => Math.floor(val) + 0.5;
 const round = (val: number) => Math.round(val);

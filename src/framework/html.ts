@@ -31,6 +31,17 @@ export const inputCheckbox = (props: Props<boolean>) => {
 
   return res;
 };
+
+export const inputText = (props: Props<string>) => {
+  const res = document.createElement("input");
+  res.type = "text";
+
+  res.addEventListener("input", (e) =>
+    props.onChange((e.currentTarget as HTMLInputElement).value)
+  );
+
+  return res;
+};
 export const inputColor = (props: Props<string>) => {
   const res = document.createElement("input");
   res.type = "color";

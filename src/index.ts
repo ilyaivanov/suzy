@@ -1,4 +1,4 @@
-import { setOnTick } from "./frame/animations";
+import { setOnTick } from "./framework/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import {
   getItemAbove,
@@ -6,12 +6,17 @@ import {
   isOneOfTheParents,
   Item,
 } from "./tree/core";
-import { div } from "./frame/html";
+import { div, inputCheckbox, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 import big from "./tree/data.big";
-import { buildCanvasViews, updateCanvasViews } from "./layouter";
+import {
+  buildCanvasViews,
+  getTextCoordinates,
+  updateCanvasViews,
+} from "./layouter";
 import { clamp } from "./tree/numbers";
+import constants from "./constants";
 
 const tree = big;
 
@@ -40,7 +45,11 @@ resizeAndDraw();
 
 window.addEventListener("resize", resizeAndDraw);
 
+let a: any = true;
 document.addEventListener("keydown", (e) => {
+  if (input) {
+    return;
+  }
   if (e.code === "KeyL" && e.ctrlKey) {
     toggleSidebarVisibility(sidepanel);
     e.preventDefault();
@@ -73,6 +82,10 @@ document.addEventListener("keydown", (e) => {
     } else if (tree.selectedItem.children.length > 0) {
       tryChangeSelection(tree.selectedItem.children[0]);
     }
+  } else if (e.code === "KeyE" && tree.selectedItem) {
+    canvas.editedItem = tree.selectedItem;
+    showInput();
+    e.preventDefault();
   }
   updateCanvasViews(canvas);
   redrawCanvas();
@@ -85,9 +98,79 @@ document.addEventListener("wheel", (e) => {
       0,
       canvas.pageHeight - canvas.height
     );
+    updateInputCoordinates();
     redrawCanvas();
   }
 });
+
+let input: HTMLInputElement | undefined;
+
+function showInput() {
+  input = inputText({ value: "", onChange: () => {} });
+
+  input.style.position = "fixed";
+
+  input.style.fontFamily = constants.font;
+
+  if (tree.selectedItem) {
+    const view = canvas.views.get(tree.selectedItem!);
+
+    if (view) {
+      input.style.fontWeight = view.fontWeight + "";
+      input.style.fontSize = view.fontSize + "px";
+
+      const left =
+        view!.x.currentValue +
+        constants.squareSize +
+        constants.textLeftMargin +
+        canvas.x;
+      input.style.left = left + "px";
+      input.style.width = canvas.width - left + "px";
+      updateInputCoordinates();
+      input.style.height = view.rowHeight + "px";
+      input.style.color = "white";
+
+      input.value = tree.selectedItem.title;
+
+      document.body.appendChild(input);
+
+      input.classList.add("item-text-input");
+
+      input.addEventListener("keydown", (e) => {
+        if (
+          (e.code === "Escape" ||
+            e.code === "Enter" ||
+            e.code === "NumpadEnter") &&
+          input &&
+          canvas.editedItem
+        ) {
+          canvas.editedItem.title = input.value;
+          input.remove();
+          input = undefined;
+          canvas.editedItem = undefined;
+          redrawCanvas();
+        }
+      });
+      input.focus();
+      input.scrollTo({ left: 0 });
+      input.setSelectionRange(0, 0);
+    }
+  }
+}
+
+const updateInputCoordinates = () => {
+  if (input && tree.selectedItem) {
+    const view = canvas.views.get(tree.selectedItem!);
+    if (view) {
+      // Warning: minus one pixel is done by hand, need to investigate
+      // works now for small and big font, but changing fontSizes too much might break this
+      const diff = 1.5;
+      input.style.top = `${
+        view.y.currentValue + canvas.y - diff - canvas.pageOffset
+      }px`;
+    }
+  }
+};
 
 const tryChangeSelection = (newItemToSelect: Item) => {
   if (

@@ -1,16 +1,19 @@
 import constants from "./constants";
 import { Item, Tree } from "./tree/core";
-import { div } from "./frame/html";
+import { div } from "./framework/html";
 import { drawView, View } from "./layouter";
 
 export type MyCanvas = {
   width: number;
   height: number;
+  x: number;
+  y: number;
   canvasEl: HTMLCanvasElement;
   container: HTMLDivElement;
   ctx: CanvasRenderingContext2D;
 
   focusedItem: Item | undefined;
+  editedItem: Item | undefined;
 
   pageOffset: number;
 
@@ -34,7 +37,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.translate(0, -canvas.pageOffset);
 
   for (const [item, view] of canvas.views) {
-    drawView(ctx, view, focusedItem, tree.selectedItem);
+    drawView(canvas, view, focusedItem, tree.selectedItem);
   }
 
   // Drawing minimap
@@ -59,7 +62,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
 
   ctx.scale(1 / constants.minimapScale, 1 / constants.minimapScale);
   for (const [item, view] of canvas.views) {
-    drawView(ctx, view, focusedItem, tree.selectedItem);
+    drawView(canvas, view, focusedItem, tree.selectedItem);
   }
 
   ctx.resetTransform();
@@ -75,12 +78,15 @@ export const createCanvas = (): MyCanvas => {
 
     views: new Map(),
     focusedItem: undefined,
+    editedItem: undefined,
 
     // waiting until container is added into DOM to set dimensions
     width: 0,
     height: 0,
     pageOffset: 0,
     pageHeight: 0,
+    x: 0,
+    y: 0,
 
     scale,
   };
@@ -100,6 +106,9 @@ export const resizeCanvas = (canvas: MyCanvas) => {
   canvas.canvasEl.width = width * canvas.scale;
   canvas.canvasEl.height = height * canvas.scale;
 
+  const rect = canvas.canvasEl.getBoundingClientRect();
+  canvas.x = rect.left;
+  canvas.y = rect.top;
   canvas.width = width;
   canvas.height = height;
 };
