@@ -1,7 +1,6 @@
 import { setOnTick, to } from "./framework/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import {
-  forEachChild,
   forEachChildIncludingParent,
   getItemAbove,
   getItemBelow,
@@ -9,20 +8,20 @@ import {
   isOneOfTheParents,
   Item,
   removeChild,
+  updateIsOpenFlag,
 } from "./tree/core";
 import { div, inputCheckbox, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
 import big from "./tree/data.small";
-import {
-  buildCanvasViews,
-  getTextCoordinates,
-  updateCanvasViews,
-} from "./layouter";
+import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
 
 const tree = big;
+
+//@ts-expect-error
+window.tree = tree;
 
 const canvas = createCanvas();
 canvas.focusedItem = tree.root;
@@ -49,12 +48,64 @@ resizeAndDraw();
 
 window.addEventListener("resize", resizeAndDraw);
 
-let a: any = true;
 document.addEventListener("keydown", (e) => {
   if (input) {
-    return;
+    return input;
   }
-  if (e.code === "KeyL" && e.ctrlKey) {
+
+  //
+  // Movement
+  //
+  if (e.code === "ArrowDown" && e.metaKey) {
+    const context = tree.selectedItem!.parent!.children;
+    const index = context.indexOf(tree.selectedItem!);
+    if (index < context.length - 1) {
+      context.splice(index, 1);
+      context.splice(index + 1, 0, tree.selectedItem!);
+    }
+  } else if (e.code === "ArrowUp" && e.metaKey) {
+    const context = tree.selectedItem!.parent!.children;
+    const index = context.indexOf(tree.selectedItem!);
+    if (index > 0) {
+      context.splice(index, 1);
+      context.splice(index - 1, 0, tree.selectedItem!);
+    }
+  } else if (e.code === "ArrowRight" && e.metaKey) {
+    e.preventDefault();
+
+    const context = tree.selectedItem!.parent!.children;
+    const index = context.indexOf(tree.selectedItem!);
+    if (index > 0) {
+      context.splice(index, 1);
+      updateIsOpenFlag(tree.selectedItem!.parent!);
+      context[index - 1].children = [
+        ...context[index - 1].children,
+        tree.selectedItem!,
+      ];
+      tree.selectedItem!.parent = context[index - 1];
+      tree.selectedItem!.parent!.isOpen = true;
+    }
+  } else if (e.code === "ArrowLeft" && e.metaKey) {
+    e.preventDefault();
+
+    if (tree.selectedItem?.parent?.parent) {
+      const context = tree.selectedItem!.parent!.children;
+      const index = context.indexOf(tree.selectedItem!);
+      context.splice(index, 1);
+      updateIsOpenFlag(tree.selectedItem!.parent!);
+
+      const targetContext = tree.selectedItem!.parent!.parent!.children;
+      const targetIndex = targetContext.indexOf(tree.selectedItem!.parent!);
+      targetContext.splice(targetIndex + 1, 0, tree.selectedItem!);
+      tree.selectedItem!.parent = tree.selectedItem!.parent!.parent;
+    }
+  }
+  //
+  //
+  //
+  //
+  //
+  else if (e.code === "KeyL" && e.ctrlKey) {
     toggleSidebarVisibility(sidepanel);
     e.preventDefault();
   } else if (e.code === "ArrowDown" && e.ctrlKey) {

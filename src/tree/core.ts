@@ -178,6 +178,6 @@ const getLastNestedItem = (item: Item): Item => {
 
 const isLast = (item: Item): boolean => !getFollowingSibling(item);
 
-const updateIsOpenFlag = (item: Item) => {
+export const updateIsOpenFlag = (item: Item) => {
   item.isOpen = item.children.length !== 0;
 };
