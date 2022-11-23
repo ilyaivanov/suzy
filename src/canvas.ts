@@ -3,6 +3,7 @@ import { Item, Tree } from "./tree/core";
 import { div } from "./framework/html";
 import { drawView, View } from "./layouter";
 import { spring, Spring, to } from "./framework/animations";
+import { clamp } from "./tree/numbers";
 
 export type MyCanvas = {
   width: number;
@@ -130,7 +131,24 @@ export const centerOnItem = (canvas: MyCanvas, item: Item) => {
       rowCenter > canvas.pageOffset.targetValue + canvas.height ||
       rowCenter < canvas.pageOffset.targetValue
     ) {
-      to(canvas.pageOffset, rowCenter - canvas.height / 2);
+      scrollToX(
+        canvas,
+        clamp(
+          rowCenter - canvas.height / 2,
+          0,
+          canvas.pageHeight - canvas.height
+        )
+      );
     }
   }
 };
+
+export const changeFocus = (canvas: MyCanvas, item: Item) => {
+  canvas.focusedItem = item;
+
+  // wait to rebuild the views
+  requestAnimationFrame(() => centerOnItem(canvas, item));
+};
+
+const scrollToX = (canvas: MyCanvas, offset: number) =>
+  to(canvas.pageOffset, offset);

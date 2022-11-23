@@ -1,6 +1,7 @@
 import { setOnTick, to } from "./framework/animations";
 import {
   centerOnItem,
+  changeFocus,
   createCanvas,
   drawCanvas,
   MyCanvas,
@@ -101,12 +102,12 @@ document.addEventListener("keydown", (e) => {
   } else if (e.code === "ArrowDown" && e.ctrlKey) {
   } else if (e.code === "ArrowRight" && e.altKey) {
     if (canvas.focusedItem != tree.selectedItem) {
-      tryChangeFocus(tree.selectedItem);
+      changeFocus(canvas, tree.selectedItem);
     }
     e.preventDefault();
   } else if (e.code === "ArrowLeft" && e.altKey) {
     if (canvas.focusedItem && canvas.focusedItem.parent) {
-      tryChangeFocus(canvas.focusedItem.parent);
+      changeFocus(canvas, canvas.focusedItem.parent);
     }
     e.preventDefault();
   } else if (e.code === "ArrowDown") {
@@ -260,10 +261,6 @@ const tryChangeSelection = (newItemToSelect: Item, canvas: MyCanvas) => {
     tree.selectedItem = newItemToSelect;
     centerOnItem(canvas, newItemToSelect);
   }
-};
-
-const tryChangeFocus = (newItemToFocus: Item) => {
-  canvas.focusedItem = newItemToFocus;
 };
 
 setOnTick(redrawCanvas);
