@@ -36,7 +36,7 @@ const tick = (currentTime: number) => {
 
   if (runningAnimations.size !== 0) requestAnimationFrame(tick);
   else {
-    console.log("All animations stopped");
+    console.log("Animations engine finished all animations");
     lastTime = 0;
   }
 

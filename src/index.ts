@@ -1,23 +1,21 @@
 import { setOnTick, to } from "./framework/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import {
-  forEachChildIncludingParent,
   getItemAbove,
   getItemBelow,
-  getNextItemToSelectAfterRemove,
   isOneOfTheParents,
   Item,
-  removeChild,
   updateIsOpenFlag,
 } from "./tree/core";
-import { div, inputCheckbox, inputText } from "./framework/html";
+import { div, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./tree/data.small";
+import big from "./tree/data.big";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
-import { removeItem, undoAction } from "./undoHistory";
+import { redoAction, doAction, undoAction } from "./undoHistory";
+import { createRemoveAction } from "./actions/remove";
 
 const tree = big;
 
@@ -105,6 +103,16 @@ document.addEventListener("keydown", (e) => {
       tree.selectedItem!.parent = tree.selectedItem!.parent!.parent;
     }
   }
+
+  //
+  // Undo/Redo
+  //
+  else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
+    redoAction(tree, canvas);
+  } else if (e.code === "KeyZ" && e.metaKey) {
+    undoAction(tree, canvas);
+  }
+
   //
   //
   //
@@ -163,7 +171,7 @@ document.addEventListener("keydown", (e) => {
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX" && tree.selectedItem) {
-    removeItem(tree, canvas);
+    doAction(tree, canvas, createRemoveAction(tree));
   } else if (e.code === "KeyZ" && e.metaKey) {
     undoAction(tree, canvas);
   }
