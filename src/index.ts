@@ -10,7 +10,6 @@ import {
 import { div, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./tree/data.big";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
@@ -19,6 +18,8 @@ import { createRemoveAction } from "./actions/remove";
 import { createRenameAction } from "./actions/rename";
 import { createMoveAction } from "./actions/move";
 
+//USED SOLELY for development
+import big from "./tree/data.small";
 const tree = big;
 
 const canvas = createCanvas();
@@ -54,7 +55,7 @@ resizeAndDraw();
 window.addEventListener("resize", resizeAndDraw);
 
 document.addEventListener("keydown", (e) => {
-  if (input) {
+  if (input || !canvas.focusedItem || !tree.selectedItem) {
     return input;
   }
 
@@ -62,15 +63,15 @@ document.addEventListener("keydown", (e) => {
   // Movement
   //
   if (e.code === "ArrowDown" && e.metaKey)
-    doAction(tree, createMoveAction(tree, "down"));
+    doAction(tree, createMoveAction(tree, "down", canvas.focusedItem));
   else if (e.code === "ArrowUp" && e.metaKey)
-    doAction(tree, createMoveAction(tree, "up"));
+    doAction(tree, createMoveAction(tree, "up", canvas.focusedItem));
   else if (e.code === "ArrowRight" && e.metaKey) {
     e.preventDefault();
-    doAction(tree, createMoveAction(tree, "right"));
+    doAction(tree, createMoveAction(tree, "right", canvas.focusedItem));
   } else if (e.code === "ArrowLeft" && e.metaKey) {
     e.preventDefault();
-    doAction(tree, createMoveAction(tree, "left"));
+    doAction(tree, createMoveAction(tree, "left", canvas.focusedItem));
   }
 
   //
@@ -91,39 +92,39 @@ document.addEventListener("keydown", (e) => {
     toggleSidebarVisibility(sidepanel);
     e.preventDefault();
   } else if (e.code === "ArrowDown" && e.ctrlKey) {
-  } else if (e.code === "ArrowRight" && tree.selectedItem && e.altKey) {
+  } else if (e.code === "ArrowRight" && e.altKey) {
     if (canvas.focusedItem != tree.selectedItem) {
       tryChangeFocus(tree.selectedItem);
     }
     e.preventDefault();
-  } else if (e.code === "ArrowLeft" && tree.selectedItem && e.altKey) {
+  } else if (e.code === "ArrowLeft" && e.altKey) {
     if (canvas.focusedItem && canvas.focusedItem.parent) {
       tryChangeFocus(canvas.focusedItem.parent);
     }
     e.preventDefault();
-  } else if (e.code === "ArrowDown" && tree.selectedItem) {
+  } else if (e.code === "ArrowDown") {
     const itemBelow = getItemBelow(tree.root, tree.selectedItem);
     if (itemBelow) tryChangeSelection(itemBelow);
-  } else if (e.code === "ArrowUp" && tree.selectedItem) {
+  } else if (e.code === "ArrowUp") {
     const itemAbove = getItemAbove(tree.selectedItem);
     if (itemAbove) tryChangeSelection(itemAbove);
-  } else if (e.code === "ArrowLeft" && tree.selectedItem) {
+  } else if (e.code === "ArrowLeft") {
     if (tree.selectedItem.isOpen) {
       tree.selectedItem.isOpen = false;
     } else if (tree.selectedItem.parent) {
       tryChangeSelection(tree.selectedItem.parent);
     }
-  } else if (e.code === "ArrowRight" && tree.selectedItem) {
+  } else if (e.code === "ArrowRight") {
     if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
       tree.selectedItem.isOpen = true;
     } else if (tree.selectedItem.children.length > 0) {
       tryChangeSelection(tree.selectedItem.children[0]);
     }
-  } else if (e.code === "KeyE" && tree.selectedItem) {
+  } else if (e.code === "KeyE") {
     canvas.editedItem = tree.selectedItem;
     showInput();
     e.preventDefault();
-  } else if (e.code === "Enter" && tree.selectedItem) {
+  } else if (e.code === "Enter") {
     const newItem: Item = { title: "", children: [], isOpen: false };
     if (tree.selectedItem.isOpen) {
       tree.selectedItem.children = [newItem, ...tree.selectedItem.children];
@@ -139,7 +140,7 @@ document.addEventListener("keydown", (e) => {
 
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
-  } else if (e.code === "KeyX" && tree.selectedItem) {
+  } else if (e.code === "KeyX") {
     doAction(tree, createRemoveAction(tree));
   } else if (e.code === "KeyZ" && e.metaKey) {
     undoAction(tree);

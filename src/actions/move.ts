@@ -1,4 +1,10 @@
-import { Item, Tree, updateIsOpenFlag } from "../tree/core";
+import {
+  isOneOfTheParents,
+  isRoot,
+  Item,
+  Tree,
+  updateIsOpenFlag,
+} from "../tree/core";
 
 export type Move = {
   type: "move";
@@ -29,7 +35,8 @@ type Direction = "up" | "down" | "left" | "right";
 
 export const createMoveAction = (
   tree: Tree,
-  direction: Direction
+  direction: Direction,
+  focusedItem: Item
 ): Move | undefined => {
   const { selectedItem } = tree;
 
@@ -41,18 +48,25 @@ export const createMoveAction = (
     const createMoveActionForSelected = (
       targetParent: Item,
       targetIndex: number
-    ): Move => ({
-      type: "move",
-      item: selectedItem,
-      originalParent: selectedItemParent,
-      originalIndex: index,
-      targetParent,
-      targetIndex,
-    });
+    ): Move | undefined =>
+      isOneOfTheParents(targetParent, focusedItem)
+        ? {
+            type: "move",
+            item: selectedItem,
+            originalParent: selectedItemParent,
+            originalIndex: index,
+            targetParent,
+            targetIndex,
+          }
+        : undefined;
 
     if (direction === "down" && index < context.length - 1) {
       return createMoveActionForSelected(selectedItemParent, index + 1);
-    } else if (direction === "down" && index == context.length - 1) {
+    } else if (
+      direction === "down" &&
+      index == context.length - 1 &&
+      !isRoot(selectedItemParent)
+    ) {
       const parentIndex = getItemIndex(selectedItemParent);
       const parentParentContext = selectedItemParent.parent?.children;
       if (parentParentContext && parentIndex < parentParentContext.length - 1) {
@@ -63,7 +77,11 @@ export const createMoveAction = (
       }
     } else if (direction === "up" && index > 0) {
       return createMoveActionForSelected(selectedItemParent, index - 1);
-    } else if (direction === "up" && index == 0) {
+    } else if (
+      direction === "up" &&
+      index == 0 &&
+      !isRoot(selectedItemParent)
+    ) {
       const parentIndex = getItemIndex(selectedItemParent);
       const parentParentContext = selectedItemParent.parent?.children;
       if (parentParentContext && parentIndex > 0) {
