@@ -99,7 +99,7 @@ export const forEachChild = (
   const traverse = (children: Item[]) => {
     children.forEach((c) => {
       cb(c, item);
-      if (hasChildren(c)) forEachChild(c, cb);
+      if (c.isOpen && hasChildren(c)) forEachChild(c, cb);
     });
   };
   traverse(item.children);

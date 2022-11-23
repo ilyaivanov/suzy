@@ -24,4 +24,6 @@ export default {
   lineExtraSpace: 3,
 
   minimapScale: 9,
+
+  animationSlowCoef: 1, // how much times to slow animation
 };

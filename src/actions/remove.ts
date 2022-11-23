@@ -17,18 +17,6 @@ export type Remove = {
 };
 
 export const doRemove = (tree: Tree, canvas: MyCanvas, action: Remove) => {
-  forEachChildIncludingParent(action.item, (child) => {
-    const view = canvas.views.get(child);
-    if (view) {
-      to(view.x, view.x.targetValue - 20);
-      to(view.opacity, 0);
-      // this can be undone via undo
-      view.opacity.onFinish = () => {
-        canvas.views.delete(view.item);
-      };
-    }
-  });
-
   removeChild(action.item.parent!, action.item);
   tree.selectedItem = action.itemToSelect;
 };

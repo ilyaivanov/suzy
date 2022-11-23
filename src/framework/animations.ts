@@ -1,10 +1,10 @@
+import constants from "../constants";
+
 export interface Animated {
   isAnimating: boolean;
   tick: (deltaTime: number) => void;
   onFinish?: () => void;
 }
-
-const ANIMATION_SLOW_COEF = 1; // how much times to slow animation
 
 const runningAnimations = new Set<Animated>();
 
@@ -23,7 +23,7 @@ const tick = (currentTime: number) => {
 
   const animationsToRemove: Animated[] = [];
   for (const anim of runningAnimations) {
-    anim.tick(deltaTime / ANIMATION_SLOW_COEF);
+    anim.tick(deltaTime / constants.animationSlowCoef);
     if (!anim.isAnimating) animationsToRemove.push(anim);
   }
 
