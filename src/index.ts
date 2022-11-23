@@ -1,19 +1,6 @@
 import { setOnTick, to } from "./framework/animations";
-import {
-  centerOnItem,
-  changeFocus,
-  createCanvas,
-  drawCanvas,
-  MyCanvas,
-  resizeCanvas,
-} from "./canvas";
-import {
-  getItemAbove,
-  getItemBelow,
-  isOneOfTheParents,
-  isRoot,
-  Item,
-} from "./tree/core";
+import { changeFocus, createCanvas, drawCanvas, resizeCanvas } from "./canvas";
+
 import { div, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
@@ -24,10 +11,19 @@ import { redoAction, doAction, undoAction } from "./undoHistory";
 import { createRemoveAction } from "./editing/remove";
 import { createRenameAction } from "./editing/rename";
 import { createMoveAction } from "./editing/move";
+import { createCreateAction } from "./editing/create";
+
+import {
+  closeCurrentOrSelectParent,
+  openCurrentOrSelectChild,
+  selectItemAbove,
+  selectItemBelow,
+  selectNextSibling,
+  selectPreviousSibling,
+} from "./navigation/selection";
 
 //USED SOLELY for development
 import big from "./tree/data.big";
-import { createCreateAction } from "./editing/create";
 const tree = big;
 
 const canvas = createCanvas();
@@ -92,15 +88,9 @@ document.addEventListener("keydown", (e) => {
   }
 
   //
+  // Navigation
   //
-  //
-  //
-  //
-  else if (e.code === "KeyL" && e.ctrlKey) {
-    toggleSidebarVisibility(sidepanel);
-    e.preventDefault();
-  } else if (e.code === "ArrowDown" && e.ctrlKey) {
-  } else if (e.code === "ArrowRight" && e.altKey) {
+  else if (e.code === "ArrowRight" && e.altKey) {
     if (canvas.focusedItem != tree.selectedItem) {
       changeFocus(canvas, tree.selectedItem);
     }
@@ -110,25 +100,18 @@ document.addEventListener("keydown", (e) => {
       changeFocus(canvas, canvas.focusedItem.parent);
     }
     e.preventDefault();
-  } else if (e.code === "ArrowDown") {
-    const itemBelow = getItemBelow(tree.root, tree.selectedItem);
-    if (itemBelow) tryChangeSelection(itemBelow, canvas);
-  } else if (e.code === "ArrowUp") {
-    const itemAbove = getItemAbove(tree.selectedItem);
-    if (itemAbove) tryChangeSelection(itemAbove, canvas);
-  } else if (e.code === "ArrowLeft") {
-    if (tree.selectedItem.isOpen) {
-      tree.selectedItem.isOpen = false;
-    } else if (tree.selectedItem.parent) {
-      tryChangeSelection(tree.selectedItem.parent, canvas);
-    }
-  } else if (e.code === "ArrowRight") {
-    if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
-      tree.selectedItem.isOpen = true;
-    } else if (tree.selectedItem.children.length > 0) {
-      tryChangeSelection(tree.selectedItem.children[0], canvas);
-    }
-  } else if (e.code === "KeyE") {
+  } else if (e.code === "ArrowDown" && e.altKey)
+    selectNextSibling(canvas, tree);
+  else if (e.code === "ArrowUp" && e.altKey)
+    selectPreviousSibling(canvas, tree);
+  else if (e.code === "ArrowDown") selectItemBelow(canvas, tree);
+  else if (e.code === "ArrowUp") selectItemAbove(canvas, tree);
+  else if (e.code === "ArrowLeft") closeCurrentOrSelectParent(canvas, tree);
+  else if (e.code === "ArrowRight") openCurrentOrSelectChild(canvas, tree);
+  //
+  //
+  //
+  else if (e.code === "KeyE") {
     canvas.editedItem = tree.selectedItem;
     showInput();
     e.preventDefault();
@@ -148,7 +131,11 @@ document.addEventListener("keydown", (e) => {
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX") {
     doAction(tree, canvas, createRemoveAction(tree));
+  } else if (e.code === "KeyL" && e.ctrlKey) {
+    toggleSidebarVisibility(sidepanel);
+    e.preventDefault();
   }
+
   updateCanvasViews(canvas);
   redrawCanvas();
 });
@@ -249,17 +236,6 @@ const updateInputCoordinates = () => {
         view.y.currentValue + canvas.y - diff - canvas.pageOffset.currentValue
       }px`;
     }
-  }
-};
-
-const tryChangeSelection = (newItemToSelect: Item, canvas: MyCanvas) => {
-  if (
-    canvas.focusedItem &&
-    isOneOfTheParents(newItemToSelect, canvas.focusedItem) &&
-    !isRoot(newItemToSelect)
-  ) {
-    tree.selectedItem = newItemToSelect;
-    centerOnItem(canvas, newItemToSelect);
   }
 };
 

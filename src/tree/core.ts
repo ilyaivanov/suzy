@@ -124,8 +124,8 @@ export const isOneOfTheParents = (item: Item, parent: Item) => {
   return false;
 };
 
-export const getItemBelow = (focusedItem: Item, item: Item): Item | undefined =>
-  (item.isOpen && item.children.length > 0) || focusedItem == item
+export const getItemBelow = (item: Item): Item | undefined =>
+  item.isOpen && item.children.length > 0
     ? item.children[0]
     : getFollowingItem(item);
 
