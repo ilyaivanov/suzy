@@ -19,7 +19,8 @@ import { createRenameAction } from "./actions/rename";
 import { createMoveAction } from "./actions/move";
 
 //USED SOLELY for development
-import big from "./tree/data.small";
+import big from "./tree/data.big";
+import { createCreateAction } from "./actions/create";
 const tree = big;
 
 const canvas = createCanvas();
@@ -125,19 +126,27 @@ document.addEventListener("keydown", (e) => {
     showInput();
     e.preventDefault();
   } else if (e.code === "Enter") {
-    const newItem: Item = { title: "", children: [], isOpen: false };
-    if (tree.selectedItem.isOpen) {
-      tree.selectedItem.children = [newItem, ...tree.selectedItem.children];
-      newItem.parent = tree.selectedItem;
-    } else {
-      const parentContext = tree.selectedItem.parent!.children;
-      const index = parentContext.indexOf(tree.selectedItem);
-      parentContext.splice(index + 1, 0, newItem);
-      newItem.parent = tree.selectedItem.parent;
+    const action = createCreateAction(
+      tree,
+      tree.selectedItem.isOpen ? "inside" : "after"
+    );
+    doAction(tree, action);
+    // const newItem: Item = { title: "", children: [], isOpen: false };
+    // if (tree.selectedItem.isOpen) {
+    //   tree.selectedItem.children = [newItem, ...tree.selectedItem.children];
+    //   newItem.parent = tree.selectedItem;
+    // } else {
+    //   const parentContext = tree.selectedItem.parent!.children;
+    //   const index = parentContext.indexOf(tree.selectedItem);
+    //   parentContext.splice(index + 1, 0, newItem);
+    //   newItem.parent = tree.selectedItem.parent;
+    // }
+    if (action) {
+      tree.selectedItem = action.item;
+      canvas.editedItem = action.item;
     }
-    tree.selectedItem = newItem;
-    canvas.editedItem = newItem;
 
+    isNearlyCreated = true;
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX") {
@@ -162,6 +171,8 @@ document.addEventListener("wheel", (e) => {
 });
 
 let input: HTMLInputElement | undefined;
+
+let isNearlyCreated = false;
 
 function showInput() {
   input = inputText({ value: "", onChange: () => {} });
@@ -202,7 +213,12 @@ function showInput() {
           input &&
           canvas.editedItem
         ) {
-          doAction(tree, createRenameAction(canvas.editedItem, input.value));
+          if (isNearlyCreated) {
+            canvas.editedItem.title = input.value;
+            isNearlyCreated = false;
+          } else
+            doAction(tree, createRenameAction(canvas.editedItem, input.value));
+
           input.remove();
           input = undefined;
           canvas.editedItem = undefined;

@@ -161,14 +161,6 @@ export const drawView = (
     const { x, y } = getTextCoordinates(view);
     ctx.fillText(view.item.title, x, y);
   }
-  if (view.item == selectedItem) {
-    drawFullWidthBar(
-      ctx,
-      view.y.currentValue,
-      view.rowHeight,
-      `rgba(255,255,255,${constants.selectedBarAlpha})`
-    );
-  }
 
   if (view.childrenHeight) {
     ctx.strokeStyle = "#383535";
@@ -180,6 +172,16 @@ export const drawView = (
     ctx.lineTo(x, y + view.childrenHeight + constants.lineExtraSpace);
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
+
+  if (view.item == selectedItem) {
+    drawFullWidthBar(
+      ctx,
+      view.y.currentValue,
+      view.rowHeight,
+      `rgba(255,255,255,${constants.selectedBarAlpha})`
+    );
+  }
 
   if (constants.showBorder) {
     ctx.strokeStyle = "gray";
@@ -189,7 +191,6 @@ export const drawView = (
     ctx.lineTo(10000, view.y.currentValue);
     ctx.stroke();
   }
-  ctx.globalAlpha = 1;
 };
 
 export const getTextCoordinates = (view: View) => {

@@ -1,7 +1,10 @@
 import {
+  getItemIndex,
+  insertChildAt,
   isOneOfTheParents,
   isRoot,
   Item,
+  removeChildAt,
   Tree,
   updateIsOpenFlag,
 } from "../tree/core";
@@ -102,20 +105,4 @@ export const createMoveAction = (
       );
     }
   }
-};
-
-const removeChildAt = (parent: Item, index: number) => {
-  parent.children.splice(index, 1);
-};
-
-const insertChildAt = (parent: Item, index: number, item: Item) => {
-  parent.children.splice(index, 0, item);
-
-  item.parent = parent;
-};
-
-const getItemIndex = (item: Item): number => {
-  if (item.parent) return item.parent.children.indexOf(item);
-  else
-    throw new Error(`Trying to find an item without a parent: ${item.title}`);
 };

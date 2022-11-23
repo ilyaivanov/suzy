@@ -1,3 +1,4 @@
+import { doCreate, undoCreate } from "./actions/create";
 import { doMove, undoMove } from "./actions/move";
 import { doRemove, undoRemove } from "./actions/remove";
 import { doRename, undoRename } from "./actions/rename";
@@ -16,6 +17,7 @@ const performAction = (tree: Tree, action: Action) => {
   if (action.type === "remove") doRemove(tree, action);
   else if (action.type === "rename") doRename(action);
   else if (action.type === "move") doMove(action);
+  else if (action.type === "create") doCreate(action);
   else assumeNever(action);
 };
 
@@ -26,6 +28,7 @@ export const undoAction = (tree: Tree) => {
     if (action.type === "remove") undoRemove(tree, action);
     else if (action.type === "rename") undoRename(action);
     else if (action.type === "move") undoMove(action);
+    else if (action.type === "create") undoCreate(tree, action);
     else assumeNever(action);
     currentIndex -= 1;
   }

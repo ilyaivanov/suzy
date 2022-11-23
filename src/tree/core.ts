@@ -1,3 +1,5 @@
+// Abstract operations over a tree of items
+
 export type Item = {
   title: string;
   children: Item[];
@@ -92,25 +94,25 @@ export const getNextItemToSelectAfterRemove = (currentlySelectedItem: Item) => {
 //   updateIsOpenFlag(parent);
 // };
 
-export const forEachChild = (
+export const forEachOpenChild = (
   item: Item,
   cb: (child: Item, parent: Item) => void
 ) => {
   const traverse = (children: Item[]) => {
     children.forEach((c) => {
       cb(c, item);
-      if (c.isOpen && hasChildren(c)) forEachChild(c, cb);
+      if (c.isOpen && hasChildren(c)) forEachOpenChild(c, cb);
     });
   };
   traverse(item.children);
 };
 
-export const forEachChildIncludingParent = (
+export const forEachOpenChildIncludingParent = (
   item: Item,
   cb: (child: Item, parent: Item) => void
 ) => {
   cb(item, item.parent!);
-  forEachChild(item, cb);
+  forEachOpenChild(item, cb);
 };
 
 export const isOneOfTheParents = (item: Item, parent: Item) => {
@@ -180,4 +182,20 @@ const isLast = (item: Item): boolean => !getFollowingSibling(item);
 
 export const updateIsOpenFlag = (item: Item) => {
   item.isOpen = item.children.length !== 0;
+};
+
+export const removeChildAt = (parent: Item, index: number) => {
+  parent.children.splice(index, 1);
+};
+
+export const insertChildAt = (parent: Item, index: number, item: Item) => {
+  parent.children.splice(index, 0, item);
+
+  item.parent = parent;
+};
+
+export const getItemIndex = (item: Item): number => {
+  if (item.parent) return item.parent.children.indexOf(item);
+  else
+    throw new Error(`Trying to find an item without a parent: ${item.title}`);
 };
