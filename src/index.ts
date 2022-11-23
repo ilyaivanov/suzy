@@ -6,12 +6,11 @@ import {
   isOneOfTheParents,
   isRoot,
   Item,
-  updateIsOpenFlag,
 } from "./tree/core";
 import { div, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./tree/data.small";
+import big from "./tree/data.big";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
@@ -69,32 +68,9 @@ document.addEventListener("keydown", (e) => {
   else if (e.code === "ArrowRight" && e.metaKey) {
     e.preventDefault();
     doAction(tree, createMoveAction(tree, "right"));
-    // const context = tree.selectedItem!.parent!.children;
-    // const index = context.indexOf(tree.selectedItem!);
-    // if (index > 0) {
-    //   context.splice(index, 1);
-    //   updateIsOpenFlag(tree.selectedItem!.parent!);
-    //   context[index - 1].children = [
-    //     ...context[index - 1].children,
-    //     tree.selectedItem!,
-    //   ];
-    //   tree.selectedItem!.parent = context[index - 1];
-    //   tree.selectedItem!.parent!.isOpen = true;
-    // }
   } else if (e.code === "ArrowLeft" && e.metaKey) {
     e.preventDefault();
-
-    if (tree.selectedItem?.parent?.parent) {
-      const context = tree.selectedItem!.parent!.children;
-      const index = context.indexOf(tree.selectedItem!);
-      context.splice(index, 1);
-      updateIsOpenFlag(tree.selectedItem!.parent!);
-
-      const targetContext = tree.selectedItem!.parent!.parent!.children;
-      const targetIndex = targetContext.indexOf(tree.selectedItem!.parent!);
-      targetContext.splice(targetIndex + 1, 0, tree.selectedItem!);
-      tree.selectedItem!.parent = tree.selectedItem!.parent!.parent;
-    }
+    doAction(tree, createMoveAction(tree, "left"));
   }
 
   //

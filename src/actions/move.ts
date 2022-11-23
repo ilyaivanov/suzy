@@ -33,38 +33,37 @@ export const createMoveAction = (
 ): Move | undefined => {
   const { selectedItem } = tree;
 
-  if (selectedItem && selectedItem.parent) {
-    const context = selectedItem.parent.children;
+  const selectedItemParent = selectedItem?.parent;
+  if (selectedItem && selectedItemParent) {
+    const context = selectedItemParent.children;
     const index = context.indexOf(selectedItem);
 
+    const createMoveActionForSelected = (
+      targetParent: Item,
+      targetIndex: number
+    ): Move => ({
+      type: "move",
+      item: selectedItem,
+      originalParent: selectedItemParent,
+      originalIndex: index,
+      targetParent,
+      targetIndex,
+    });
+
     if (direction === "down" && index < context.length - 1) {
-      return {
-        type: "move",
-        item: selectedItem,
-        originalParent: selectedItem.parent,
-        originalIndex: index,
-        targetParent: selectedItem.parent,
-        targetIndex: index + 1,
-      };
+      return createMoveActionForSelected(selectedItemParent, index + 1);
     } else if (direction === "up" && index > 0) {
-      return {
-        type: "move",
-        item: selectedItem,
-        originalParent: selectedItem.parent,
-        originalIndex: index,
-        targetParent: selectedItem.parent,
-        targetIndex: index - 1,
-      };
+      return createMoveActionForSelected(selectedItemParent, index - 1);
     } else if (direction === "right" && index > 0) {
       const previousItem = context[index - 1];
-      return {
-        type: "move",
-        item: selectedItem,
-        originalParent: selectedItem.parent,
-        originalIndex: index,
-        targetParent: previousItem,
-        targetIndex: previousItem.children.length,
-      };
+      const lastPosition = previousItem.children.length;
+      return createMoveActionForSelected(previousItem, lastPosition);
+    } else if (direction === "left" && selectedItemParent.parent) {
+      const targetIndex = getItemIndex(selectedItemParent) + 1;
+      return createMoveActionForSelected(
+        selectedItemParent.parent,
+        targetIndex
+      );
     }
   }
 };
@@ -77,4 +76,10 @@ const insertChildAt = (parent: Item, index: number, item: Item) => {
   parent.children.splice(index, 0, item);
 
   item.parent = parent;
+};
+
+const getItemIndex = (item: Item): number => {
+  if (item.parent) return item.parent.children.indexOf(item);
+  else
+    throw new Error(`Trying to find an item without a parent: ${item.title}`);
 };
