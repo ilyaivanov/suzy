@@ -47,7 +47,7 @@ export const selectPreviousSibling = (canvas: MyCanvas, tree: Tree) => {
 };
 
 export const closeCurrentOrSelectParent = (canvas: MyCanvas, tree: Tree) => {
-  if (tree.selectedItem) {
+  if (tree.selectedItem && canvas.focusedItem != tree.selectedItem) {
     if (tree.selectedItem.isOpen) {
       tree.selectedItem.isOpen = false;
     } else if (tree.selectedItem.parent) {
@@ -58,7 +58,11 @@ export const closeCurrentOrSelectParent = (canvas: MyCanvas, tree: Tree) => {
 
 export const openCurrentOrSelectChild = (canvas: MyCanvas, tree: Tree) => {
   if (tree.selectedItem) {
-    if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
+    if (
+      !tree.selectedItem.isOpen &&
+      tree.selectedItem.children.length > 0 &&
+      canvas.focusedItem != tree.selectedItem
+    ) {
       tree.selectedItem.isOpen = true;
     } else if (tree.selectedItem.children.length > 0) {
       tryChangeSelection(tree, canvas, tree.selectedItem.children[0]);
