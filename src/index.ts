@@ -16,6 +16,7 @@ import { clamp } from "./tree/numbers";
 import constants from "./constants";
 import { redoAction, doAction, undoAction } from "./undoHistory";
 import { createRemoveAction } from "./actions/remove";
+import { createRenameAction } from "./actions/rename";
 
 const tree = big;
 
@@ -232,7 +233,11 @@ function showInput() {
           input &&
           canvas.editedItem
         ) {
-          canvas.editedItem.title = input.value;
+          doAction(
+            tree,
+            canvas,
+            createRenameAction(canvas.editedItem, input.value)
+          );
           input.remove();
           input = undefined;
           canvas.editedItem = undefined;

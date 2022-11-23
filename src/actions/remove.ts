@@ -1,7 +1,5 @@
 import { MyCanvas } from "../canvas";
-import { to } from "../framework/animations";
 import {
-  forEachChildIncludingParent,
   getNextItemToSelectAfterRemove,
   Item,
   removeChild,
