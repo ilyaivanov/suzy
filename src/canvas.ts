@@ -52,7 +52,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
 
   ctx.shadowBlur = 0;
 
-  ctx.fillStyle = "rgba(200,200,200,0.15)";
+  ctx.fillStyle = `rgba(200,200,200,${constants.minimapViewportAlpha})`;
   ctx.fillRect(
     0,
     canvas.pageOffset / constants.minimapScale,

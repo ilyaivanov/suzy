@@ -24,6 +24,7 @@ export default {
   lineExtraSpace: 3,
 
   minimapScale: 9,
+  minimapViewportAlpha: 0.08,
 
   animationSlowCoef: 1, // how much times to slow animation
 };
