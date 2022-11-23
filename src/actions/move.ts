@@ -52,8 +52,26 @@ export const createMoveAction = (
 
     if (direction === "down" && index < context.length - 1) {
       return createMoveActionForSelected(selectedItemParent, index + 1);
+    } else if (direction === "down" && index == context.length - 1) {
+      const parentIndex = getItemIndex(selectedItemParent);
+      const parentParentContext = selectedItemParent.parent?.children;
+      if (parentParentContext && parentIndex < parentParentContext.length - 1) {
+        return createMoveActionForSelected(
+          parentParentContext[parentIndex + 1],
+          0
+        );
+      }
     } else if (direction === "up" && index > 0) {
       return createMoveActionForSelected(selectedItemParent, index - 1);
+    } else if (direction === "up" && index == 0) {
+      const parentIndex = getItemIndex(selectedItemParent);
+      const parentParentContext = selectedItemParent.parent?.children;
+      if (parentParentContext && parentIndex > 0) {
+        return createMoveActionForSelected(
+          parentParentContext[parentIndex - 1],
+          parentParentContext.length
+        );
+      }
     } else if (direction === "right" && index > 0) {
       const previousItem = context[index - 1];
       const lastPosition = previousItem.children.length;
