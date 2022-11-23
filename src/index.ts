@@ -1,5 +1,11 @@
-import { setOnTick } from "./framework/animations";
-import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
+import { setOnTick, to } from "./framework/animations";
+import {
+  centerOnItem,
+  createCanvas,
+  drawCanvas,
+  MyCanvas,
+  resizeCanvas,
+} from "./canvas";
 import {
   getItemAbove,
   getItemBelow,
@@ -64,24 +70,24 @@ document.addEventListener("keydown", (e) => {
   // Movement
   //
   if (e.code === "ArrowDown" && e.metaKey)
-    doAction(tree, createMoveAction(tree, "down", canvas.focusedItem));
+    doAction(tree, canvas, createMoveAction(tree, "down", canvas.focusedItem));
   else if (e.code === "ArrowUp" && e.metaKey)
-    doAction(tree, createMoveAction(tree, "up", canvas.focusedItem));
+    doAction(tree, canvas, createMoveAction(tree, "up", canvas.focusedItem));
   else if (e.code === "ArrowRight" && e.metaKey) {
     e.preventDefault();
-    doAction(tree, createMoveAction(tree, "right", canvas.focusedItem));
+    doAction(tree, canvas, createMoveAction(tree, "right", canvas.focusedItem));
   } else if (e.code === "ArrowLeft" && e.metaKey) {
     e.preventDefault();
-    doAction(tree, createMoveAction(tree, "left", canvas.focusedItem));
+    doAction(tree, canvas, createMoveAction(tree, "left", canvas.focusedItem));
   }
 
   //
   // Undo/Redo
   //
   else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
-    redoAction(tree);
+    redoAction(tree, canvas);
   } else if (e.code === "KeyZ" && e.metaKey) {
-    undoAction(tree);
+    undoAction(tree, canvas);
   }
 
   //
@@ -105,21 +111,21 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
   } else if (e.code === "ArrowDown") {
     const itemBelow = getItemBelow(tree.root, tree.selectedItem);
-    if (itemBelow) tryChangeSelection(itemBelow);
+    if (itemBelow) tryChangeSelection(itemBelow, canvas);
   } else if (e.code === "ArrowUp") {
     const itemAbove = getItemAbove(tree.selectedItem);
-    if (itemAbove) tryChangeSelection(itemAbove);
+    if (itemAbove) tryChangeSelection(itemAbove, canvas);
   } else if (e.code === "ArrowLeft") {
     if (tree.selectedItem.isOpen) {
       tree.selectedItem.isOpen = false;
     } else if (tree.selectedItem.parent) {
-      tryChangeSelection(tree.selectedItem.parent);
+      tryChangeSelection(tree.selectedItem.parent, canvas);
     }
   } else if (e.code === "ArrowRight") {
     if (!tree.selectedItem.isOpen && tree.selectedItem.children.length > 0) {
       tree.selectedItem.isOpen = true;
     } else if (tree.selectedItem.children.length > 0) {
-      tryChangeSelection(tree.selectedItem.children[0]);
+      tryChangeSelection(tree.selectedItem.children[0], canvas);
     }
   } else if (e.code === "KeyE") {
     canvas.editedItem = tree.selectedItem;
@@ -130,17 +136,7 @@ document.addEventListener("keydown", (e) => {
       tree,
       tree.selectedItem.isOpen ? "inside" : "after"
     );
-    doAction(tree, action);
-    // const newItem: Item = { title: "", children: [], isOpen: false };
-    // if (tree.selectedItem.isOpen) {
-    //   tree.selectedItem.children = [newItem, ...tree.selectedItem.children];
-    //   newItem.parent = tree.selectedItem;
-    // } else {
-    //   const parentContext = tree.selectedItem.parent!.children;
-    //   const index = parentContext.indexOf(tree.selectedItem);
-    //   parentContext.splice(index + 1, 0, newItem);
-    //   newItem.parent = tree.selectedItem.parent;
-    // }
+    doAction(tree, canvas, action);
     if (action) {
       tree.selectedItem = action.item;
       canvas.editedItem = action.item;
@@ -150,9 +146,7 @@ document.addEventListener("keydown", (e) => {
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX") {
-    doAction(tree, createRemoveAction(tree));
-  } else if (e.code === "KeyZ" && e.metaKey) {
-    undoAction(tree);
+    doAction(tree, canvas, createRemoveAction(tree));
   }
   updateCanvasViews(canvas);
   redrawCanvas();
@@ -160,11 +154,14 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("wheel", (e) => {
   if (canvas.pageHeight > canvas.height) {
-    canvas.pageOffset = clamp(
-      canvas.pageOffset + e.deltaY,
+    console.log(canvas.pageOffset.targetValue, e.deltaY);
+    const targetOffset = clamp(
+      canvas.pageOffset.targetValue + e.deltaY,
       0,
       canvas.pageHeight - canvas.height
     );
+
+    to(canvas.pageOffset, targetOffset);
     updateInputCoordinates();
     redrawCanvas();
   }
@@ -172,6 +169,9 @@ document.addEventListener("wheel", (e) => {
 
 let input: HTMLInputElement | undefined;
 
+// Creating a new item skips rename event, making one undoable action 'Create'
+// While renaming an item there is a separate undoable rename event
+// This flag disntinguish between these
 let isNearlyCreated = false;
 
 function showInput() {
@@ -217,7 +217,11 @@ function showInput() {
             canvas.editedItem.title = input.value;
             isNearlyCreated = false;
           } else
-            doAction(tree, createRenameAction(canvas.editedItem, input.value));
+            doAction(
+              tree,
+              canvas,
+              createRenameAction(canvas.editedItem, input.value)
+            );
 
           input.remove();
           input = undefined;
@@ -241,19 +245,21 @@ const updateInputCoordinates = () => {
       // works now for small and big font, but changing fontSizes too much might break this
       const diff = 1.5;
       input.style.top = `${
-        view.y.currentValue + canvas.y - diff - canvas.pageOffset
+        view.y.currentValue + canvas.y - diff - canvas.pageOffset.currentValue
       }px`;
     }
   }
 };
 
-const tryChangeSelection = (newItemToSelect: Item) => {
+const tryChangeSelection = (newItemToSelect: Item, canvas: MyCanvas) => {
   if (
     canvas.focusedItem &&
     isOneOfTheParents(newItemToSelect, canvas.focusedItem) &&
     !isRoot(newItemToSelect)
-  )
+  ) {
     tree.selectedItem = newItemToSelect;
+    centerOnItem(canvas, newItemToSelect);
+  }
 };
 
 const tryChangeFocus = (newItemToFocus: Item) => {

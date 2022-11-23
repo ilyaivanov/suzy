@@ -2,6 +2,7 @@ import constants from "./constants";
 import { Item, Tree } from "./tree/core";
 import { div } from "./framework/html";
 import { drawView, View } from "./layouter";
+import { spring, Spring, to } from "./framework/animations";
 
 export type MyCanvas = {
   width: number;
@@ -15,7 +16,7 @@ export type MyCanvas = {
   focusedItem: Item | undefined;
   editedItem: Item | undefined;
 
-  pageOffset: number;
+  pageOffset: Spring;
 
   pageHeight: number;
 
@@ -34,7 +35,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.fillStyle = "#1E2021";
   ctx.fillRect(0, 0, 1000000, 1000000);
 
-  ctx.translate(0, -canvas.pageOffset);
+  ctx.translate(0, -canvas.pageOffset.currentValue);
 
   for (const [item, view] of canvas.views) {
     drawView(canvas, view, focusedItem, tree.selectedItem);
@@ -55,7 +56,7 @@ export const drawCanvas = (canvas: MyCanvas, tree: Tree) => {
   ctx.fillStyle = `rgba(200,200,200,${constants.minimapViewportAlpha})`;
   ctx.fillRect(
     0,
-    canvas.pageOffset / constants.minimapScale,
+    canvas.pageOffset.currentValue / constants.minimapScale,
     mapWidth,
     canvas.height / constants.minimapScale
   );
@@ -83,7 +84,7 @@ export const createCanvas = (): MyCanvas => {
     // waiting until container is added into DOM to set dimensions
     width: 0,
     height: 0,
-    pageOffset: 0,
+    pageOffset: spring(0),
     pageHeight: 0,
     x: 0,
     y: 0,
@@ -119,3 +120,17 @@ const setDefaultTransform = (canvas: MyCanvas) => {
 };
 const getMapWidth = (canvas: MyCanvas) =>
   canvas.width / (constants.minimapScale + 1);
+
+export const centerOnItem = (canvas: MyCanvas, item: Item) => {
+  const view = canvas.views.get(item);
+
+  if (view) {
+    const rowCenter = view.y.targetValue + view.rowHeight / 2;
+    if (
+      rowCenter > canvas.pageOffset.targetValue + canvas.height ||
+      rowCenter < canvas.pageOffset.targetValue
+    ) {
+      to(canvas.pageOffset, rowCenter - canvas.height / 2);
+    }
+  }
+};
