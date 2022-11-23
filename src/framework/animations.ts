@@ -3,6 +3,7 @@ import constants from "../constants";
 export interface Animated {
   isAnimating: boolean;
   tick: (deltaTime: number) => void;
+  onTick?: () => void;
   onFinish?: () => void;
 }
 
@@ -24,6 +25,7 @@ const tick = (currentTime: number) => {
   const animationsToRemove: Animated[] = [];
   for (const anim of runningAnimations) {
     anim.tick(deltaTime / constants.animationSlowCoef);
+    if (anim.onTick) anim.onTick();
     if (!anim.isAnimating) animationsToRemove.push(anim);
   }
 

@@ -52,21 +52,9 @@ export const item = (
   return item;
 };
 
-// //Query tree
-
-// export const isFocused = (app: AppState, item: Item) =>
-//   app.itemFocused === item;
-
 export const isRoot = (item: Item) => !item.parent;
 
 const hasChildren = (item: Item) => item.children.length > 0;
-
-// // Mutate tree
-
-// export const removeChildAt = (item: Item, index: number) => {
-//   item.children.splice(index, 1);
-//   updateIsOpenFlag(item);
-// };
 
 export const removeChild = (parent: Item, item: Item) => {
   parent.children = parent.children.filter((c) => c !== item);
@@ -88,11 +76,6 @@ export const getNextItemToSelectAfterRemove = (currentlySelectedItem: Item) => {
     "removing item without a parent " + currentlySelectedItem.title
   );
 };
-// export const addChildAt = (parent: Item, item: Item, index: number) => {
-//   parent.children.splice(index, 0, item);
-//   item.parent = parent;
-//   updateIsOpenFlag(parent);
-// };
 
 export const forEachOpenChild = (
   item: Item,
