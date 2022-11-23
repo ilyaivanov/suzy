@@ -1,22 +1,24 @@
-import { setOnTick, to } from "./framework/animations";
+import { setOnTick } from "./framework/animations";
 import { createCanvas, drawCanvas, resizeCanvas } from "./canvas";
 import {
   getItemAbove,
   getItemBelow,
   isOneOfTheParents,
+  isRoot,
   Item,
   updateIsOpenFlag,
 } from "./tree/core";
 import { div, inputText } from "./framework/html";
 import { createSidepanel, toggleSidebarVisibility } from "./sidepanel";
 
-import big from "./tree/data.big";
+import big from "./tree/data.small";
 import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
 import { redoAction, doAction, undoAction } from "./undoHistory";
 import { createRemoveAction } from "./actions/remove";
 import { createRenameAction } from "./actions/rename";
+import { createMoveAction } from "./actions/move";
 
 const tree = big;
 
@@ -60,35 +62,25 @@ document.addEventListener("keydown", (e) => {
   //
   // Movement
   //
-  if (e.code === "ArrowDown" && e.metaKey) {
-    const context = tree.selectedItem!.parent!.children;
-    const index = context.indexOf(tree.selectedItem!);
-    if (index < context.length - 1) {
-      context.splice(index, 1);
-      context.splice(index + 1, 0, tree.selectedItem!);
-    }
-  } else if (e.code === "ArrowUp" && e.metaKey) {
-    const context = tree.selectedItem!.parent!.children;
-    const index = context.indexOf(tree.selectedItem!);
-    if (index > 0) {
-      context.splice(index, 1);
-      context.splice(index - 1, 0, tree.selectedItem!);
-    }
-  } else if (e.code === "ArrowRight" && e.metaKey) {
+  if (e.code === "ArrowDown" && e.metaKey)
+    doAction(tree, createMoveAction(tree, "down"));
+  else if (e.code === "ArrowUp" && e.metaKey)
+    doAction(tree, createMoveAction(tree, "up"));
+  else if (e.code === "ArrowRight" && e.metaKey) {
     e.preventDefault();
-
-    const context = tree.selectedItem!.parent!.children;
-    const index = context.indexOf(tree.selectedItem!);
-    if (index > 0) {
-      context.splice(index, 1);
-      updateIsOpenFlag(tree.selectedItem!.parent!);
-      context[index - 1].children = [
-        ...context[index - 1].children,
-        tree.selectedItem!,
-      ];
-      tree.selectedItem!.parent = context[index - 1];
-      tree.selectedItem!.parent!.isOpen = true;
-    }
+    doAction(tree, createMoveAction(tree, "right"));
+    // const context = tree.selectedItem!.parent!.children;
+    // const index = context.indexOf(tree.selectedItem!);
+    // if (index > 0) {
+    //   context.splice(index, 1);
+    //   updateIsOpenFlag(tree.selectedItem!.parent!);
+    //   context[index - 1].children = [
+    //     ...context[index - 1].children,
+    //     tree.selectedItem!,
+    //   ];
+    //   tree.selectedItem!.parent = context[index - 1];
+    //   tree.selectedItem!.parent!.isOpen = true;
+    // }
   } else if (e.code === "ArrowLeft" && e.metaKey) {
     e.preventDefault();
 
@@ -109,9 +101,9 @@ document.addEventListener("keydown", (e) => {
   // Undo/Redo
   //
   else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
-    redoAction(tree, canvas);
+    redoAction(tree);
   } else if (e.code === "KeyZ" && e.metaKey) {
-    undoAction(tree, canvas);
+    undoAction(tree);
   }
 
   //
@@ -172,9 +164,9 @@ document.addEventListener("keydown", (e) => {
     //need to wait while updateCanvasViews will build the view
     requestAnimationFrame(showInput);
   } else if (e.code === "KeyX" && tree.selectedItem) {
-    doAction(tree, canvas, createRemoveAction(tree));
+    doAction(tree, createRemoveAction(tree));
   } else if (e.code === "KeyZ" && e.metaKey) {
-    undoAction(tree, canvas);
+    undoAction(tree);
   }
   updateCanvasViews(canvas);
   redrawCanvas();
@@ -233,11 +225,7 @@ function showInput() {
           input &&
           canvas.editedItem
         ) {
-          doAction(
-            tree,
-            canvas,
-            createRenameAction(canvas.editedItem, input.value)
-          );
+          doAction(tree, createRenameAction(canvas.editedItem, input.value));
           input.remove();
           input = undefined;
           canvas.editedItem = undefined;
@@ -269,7 +257,8 @@ const updateInputCoordinates = () => {
 const tryChangeSelection = (newItemToSelect: Item) => {
   if (
     canvas.focusedItem &&
-    isOneOfTheParents(newItemToSelect, canvas.focusedItem)
+    isOneOfTheParents(newItemToSelect, canvas.focusedItem) &&
+    !isRoot(newItemToSelect)
   )
     tree.selectedItem = newItemToSelect;
 };

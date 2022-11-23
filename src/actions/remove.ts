@@ -1,4 +1,3 @@
-import { MyCanvas } from "../canvas";
 import {
   getNextItemToSelectAfterRemove,
   Item,
@@ -14,12 +13,12 @@ export type Remove = {
   itemToSelect: Item;
 };
 
-export const doRemove = (tree: Tree, canvas: MyCanvas, action: Remove) => {
+export const doRemove = (tree: Tree, action: Remove) => {
   removeChild(action.item.parent!, action.item);
   tree.selectedItem = action.itemToSelect;
 };
 
-export const undoRemove = (tree: Tree, canvas: MyCanvas, action: Remove) => {
+export const undoRemove = (tree: Tree, action: Remove) => {
   action.item.parent!.children.splice(action.oldIndex, 0, action.item);
   tree.selectedItem = action.item;
   updateIsOpenFlag(action.item.parent!);

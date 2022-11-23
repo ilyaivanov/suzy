@@ -1,5 +1,4 @@
-import { MyCanvas } from "../canvas";
-import { Item, Tree } from "../tree/core";
+import { Item } from "../tree/core";
 
 export type Rename = {
   type: "rename";
@@ -8,11 +7,11 @@ export type Rename = {
   newName: string;
 };
 
-export const doRename = (tree: Tree, canvas: MyCanvas, action: Rename) => {
+export const doRename = (action: Rename) => {
   action.item.title = action.newName;
 };
 
-export const undoRename = (tree: Tree, canvas: MyCanvas, action: Rename) => {
+export const undoRename = (action: Rename) => {
   action.item.title = action.oldName;
 };
 
