@@ -1,8 +1,8 @@
-import { doCreate, undoCreate } from "./actions/create";
-import { doMove, undoMove } from "./actions/move";
-import { doRemove, undoRemove } from "./actions/remove";
-import { doRename, undoRename } from "./actions/rename";
-import { Action } from "./actions/types";
+import { doCreate, undoCreate } from "./editing/create";
+import { doMove, undoMove } from "./editing/move";
+import { doRemove, undoRemove } from "./editing/remove";
+import { doRename, undoRename } from "./editing/rename";
+import { Action } from "./editing/types";
 import { centerOnItem, MyCanvas } from "./canvas";
 import { Tree } from "./tree/core";
 

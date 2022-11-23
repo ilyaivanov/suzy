@@ -21,13 +21,13 @@ import { buildCanvasViews, updateCanvasViews } from "./layouter";
 import { clamp } from "./tree/numbers";
 import constants from "./constants";
 import { redoAction, doAction, undoAction } from "./undoHistory";
-import { createRemoveAction } from "./actions/remove";
-import { createRenameAction } from "./actions/rename";
-import { createMoveAction } from "./actions/move";
+import { createRemoveAction } from "./editing/remove";
+import { createRenameAction } from "./editing/rename";
+import { createMoveAction } from "./editing/move";
 
 //USED SOLELY for development
 import big from "./tree/data.big";
-import { createCreateAction } from "./actions/create";
+import { createCreateAction } from "./editing/create";
 const tree = big;
 
 const canvas = createCanvas();
