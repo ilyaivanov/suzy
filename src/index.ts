@@ -96,12 +96,12 @@ document.addEventListener("keydown", (e) => {
   //
   else if (e.code === "ArrowRight" && e.altKey) {
     if (canvas.focusedItem != tree.selectedItem) {
-      changeFocus(canvas, tree.selectedItem);
+      changeFocus(canvas, tree.selectedItem, tree);
     }
     e.preventDefault();
   } else if (e.code === "ArrowLeft" && e.altKey) {
     if (canvas.focusedItem && canvas.focusedItem.parent) {
-      changeFocus(canvas, canvas.focusedItem.parent);
+      changeFocus(canvas, canvas.focusedItem.parent, tree);
     }
     e.preventDefault();
   } else if (e.code === "ArrowDown" && e.altKey)

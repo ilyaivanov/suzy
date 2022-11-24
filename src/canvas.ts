@@ -1,7 +1,7 @@
 import constants from "./constants";
 import { Item, Tree } from "./tree/core";
 import { div } from "./framework/html";
-import { drawView, View } from "./layouter";
+import { drawView, View } from "./view";
 import { spring, Spring, to } from "./framework/animations";
 import { clamp } from "./tree/numbers";
 
@@ -124,7 +124,6 @@ const getMapWidth = (canvas: MyCanvas) =>
 
 export const centerOnItem = (canvas: MyCanvas, item: Item) => {
   const view = canvas.views.get(item);
-
   if (view) {
     const rowCenter = view.y.targetValue + view.rowHeight / 2;
     if (
@@ -143,11 +142,13 @@ export const centerOnItem = (canvas: MyCanvas, item: Item) => {
   }
 };
 
-export const changeFocus = (canvas: MyCanvas, item: Item) => {
+export const changeFocus = (canvas: MyCanvas, item: Item, tree: Tree) => {
   canvas.focusedItem = item;
 
   // wait to rebuild the views
-  requestAnimationFrame(() => centerOnItem(canvas, item));
+  requestAnimationFrame(
+    () => tree.selectedItem && centerOnItem(canvas, tree.selectedItem)
+  );
 };
 
 const scrollToX = (canvas: MyCanvas, offset: number) =>
