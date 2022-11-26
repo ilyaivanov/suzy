@@ -26,7 +26,12 @@ export const createCreateAction = (
   tree: Tree,
   position: Position
 ): Create | undefined => {
-  const newItem: Item = { title: "", children: [], isOpen: false };
+  const newItem: Item = {
+    title: "",
+    id: Math.random(),
+    children: [],
+    isOpen: false,
+  };
 
   if (!tree.selectedItem) return;
 

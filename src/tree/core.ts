@@ -1,11 +1,7 @@
 // Abstract operations over a tree of items
 
-export type Item = {
-  title: string;
-  children: Item[];
-  isOpen: boolean;
-  parent?: Item;
-};
+import { createItem, Item } from "./item";
+export { Item } from "./item";
 
 export type Tree = {
   root: Item;
@@ -17,38 +13,19 @@ export const createTree = (root: Item): Tree => ({
   selectedItem: root.children[0],
 });
 
-export const root = (children: Item[]): Item => {
-  const root: Item = { title: "Root", children, isOpen: true };
-  children.forEach((c) => (c.parent = root));
-  return root;
-};
+export const root = (children: Item[]): Item => createItem("Root", children);
 
 export const item = (
   title: string,
   children?: Item[] | Partial<Item>
 ): Item => {
   let item: Item;
-  if (Array.isArray(children))
-    item = {
-      title,
-      children: children || [],
-      isOpen: !!children && children.length > 0,
-    };
-  else if (children)
-    item = {
-      title,
-      children: children.children || [],
-      isOpen: !!children.isOpen,
-    };
-  else {
-    item = {
-      title,
-      children: [],
-      isOpen: false,
-    };
-  }
+  if (Array.isArray(children)) item = createItem(title, children || []);
+  else if (children) {
+    item = createItem(title, children.children || []);
+    item.isOpen = !!children.isOpen;
+  } else item = createItem(title, []);
 
-  item.children?.forEach((c) => (c.parent = item));
   return item;
 };
 
@@ -88,6 +65,19 @@ export const forEachOpenChild = (
     });
   };
   traverse(item.children);
+};
+
+export const forEachItem = (
+  item: Item,
+  cb: (child: Item, parent: Item | undefined) => void
+) => {
+  const traverse = (children: Item[]) => {
+    children.forEach((c) => {
+      cb(c, item);
+      if (hasChildren(c)) forEachOpenChild(c, cb);
+    });
+  };
+  traverse([item]);
 };
 
 export const forEachOpenChildIncludingParent = (

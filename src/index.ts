@@ -20,25 +20,26 @@ import {
   selectPreviousSibling,
 } from "./navigation/selection";
 
-//USED SOLELY for development
-import big from "./tree/data.big";
 import {
   isCurrentlyEditing,
   showInputForCreatedItem,
   showInputForExistingItem,
   updateInputCoordinates,
 } from "./itemTextInput";
-const tree = big;
+import {
+  loadFromFile,
+  loadFromLocalStorage,
+  saveToFile,
+  saveToLocalStorage,
+} from "./persistance";
+import { deserialize, serialize } from "./persistance.save";
 
-const canvas = createCanvas();
+const initialState = deserialize(loadFromLocalStorage());
+let tree = initialState.tree;
 
-//@ts-expect-error
-window.tree = tree;
+let canvas = createCanvas();
+canvas.focusedItem = initialState.focused;
 
-//@ts-expect-error
-window.canvas = canvas;
-
-canvas.focusedItem = tree.root;
 const redrawCanvas = () => drawCanvas(canvas, tree);
 
 const sidepanel = createSidepanel({ onChange: redrawCanvas });
@@ -92,6 +93,24 @@ document.addEventListener("keydown", (e) => {
   }
 
   //
+  // Persistance
+  //
+  else if (e.code === "KeyS" && e.metaKey) {
+    e.preventDefault();
+    saveToFile(serialize(tree, canvas));
+  } else if (e.code === "KeyL" && e.metaKey) {
+    e.preventDefault();
+    loadFromFile().then((str) => {
+      const state = deserialize(str);
+
+      tree = state.tree;
+      canvas.focusedItem = state.focused;
+      canvas.views.clear();
+      resizeAndDraw();
+    });
+    return;
+  }
+  //
   // Navigation
   //
   else if (e.code === "ArrowRight" && e.altKey) {
@@ -141,6 +160,7 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
   }
 
+  saveToLocalStorage(serialize(tree, canvas));
   updateCanvasViews(canvas);
   redrawCanvas();
 });
