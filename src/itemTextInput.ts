@@ -64,14 +64,8 @@ const showInput = (canvas: MyCanvas, tree: Tree, onFinishEdit: () => void) => {
 
       input.classList.add("item-text-input");
 
-      input.addEventListener("keydown", (e) => {
-        if (
-          (e.code === "Escape" ||
-            e.code === "Enter" ||
-            e.code === "NumpadEnter") &&
-          input &&
-          canvas.editedItem
-        ) {
+      const finishEdit = () => {
+        if (input && canvas.editedItem) {
           if (isNearlyCreated) {
             canvas.editedItem.title = input.value;
             isNearlyCreated = false;
@@ -86,9 +80,22 @@ const showInput = (canvas: MyCanvas, tree: Tree, onFinishEdit: () => void) => {
           input = undefined;
           canvas.editedItem = undefined;
           onFinishEdit();
+        }
+      };
+
+      input.addEventListener("keydown", (e) => {
+        if (
+          e.code === "Escape" ||
+          e.code === "Enter" ||
+          e.code === "NumpadEnter"
+        ) {
+          input && input.removeEventListener("blur", finishEdit);
+          finishEdit();
           e.stopPropagation();
         }
       });
+
+      input.addEventListener("blur", finishEdit);
       input.focus();
       input.scrollTo({ left: 0 });
       input.setSelectionRange(0, 0);
