@@ -42,7 +42,7 @@ export const deserialize = (
 };
 
 const parse = (serializedTree: string): SerializedState => {
-  const state: SerializedState = JSON.parse(serializedTree);
+  const state: any = JSON.parse(serializedTree);
 
   const assignParents = (item: Item): Item => {
     item.children = item.children.map((c) => {
@@ -50,11 +50,23 @@ const parse = (serializedTree: string): SerializedState => {
       subItem.parent = item;
       return subItem;
     });
+
     return item;
   };
 
-  assignParents(state.root);
-  return state;
+  if (state.root) {
+    assignParents(state.root);
+    return state;
+  } else {
+    // legacy file format containing only root in json file
+    const root: Item = state;
+    assignParents(root);
+    return {
+      root,
+      selectedItemId: root.children[0].id,
+      focusedItemId: root.id,
+    };
+  }
 };
 
 const serializeState = (tree: SerializedState): string => {
